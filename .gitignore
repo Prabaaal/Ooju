@@ -46,3 +46,5 @@ Icon
 # Temporary files
 *.swp
 *~
+node_modules/
+editors/vscode/ooju-vscode-0.1.0.vsix
