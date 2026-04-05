@@ -1,0 +1,49 @@
+// Number report generator
+// This example checks numbers from 1 to 15
+// and prints different messages based on conditions.
+
+dhora current = 1
+dhora limit = 15
+dhora even_count = 0
+dhora odd_count = 0
+dhora big_count = 0
+dhora small_count = 0
+
+kua("Number report start")
+
+jetialoike (current <= limit) bare bare kora:
+    kua("Checking number:")
+    kua(current)
+
+    jodi (current % 2 == 0) hoi, tetia:
+        kua("Even number")
+        dhora even_count = even_count + 1
+    nohole jodi (current % 2 != 0) hoi, tetia:
+        kua("Odd number")
+        dhora odd_count = odd_count + 1
+
+    jodi (current > 10) hoi, tetia:
+        kua("This number is bigger than 10")
+        dhora big_count = big_count + 1
+    nohole jodi (current == 10) hoi, tetia:
+        kua("This number is exactly 10")
+        dhora small_count = small_count + 1
+    nohole ba:
+        kua("This number is 10 or smaller")
+        dhora small_count = small_count + 1
+
+    jodi (current % 5 == 0) hoi, tetia:
+        kua("This number is divisible by 5")
+
+    kua("----------------")
+    dhora current = current + 1
+
+kua("Report finished")
+kua("Total even numbers:")
+kua(even_count)
+kua("Total odd numbers:")
+kua(odd_count)
+kua("Numbers bigger than 10:")
+kua(big_count)
+kua("Numbers 10 or smaller:")
+kua(small_count)

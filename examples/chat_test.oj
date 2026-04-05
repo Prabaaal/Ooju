@@ -1,0 +1,7 @@
+dhora coin = 7
+jodi (coin > 5) hoi, tetia:
+    kua("Bhal kotha! Tumi coin besi rakhiba")
+nohole jodi (coin > 3) hoi, tetia:
+    kua("Beya nohoi, aru olop coin lage")
+nohole ba:
+    kua("Aro coin sangrah kora")

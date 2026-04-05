@@ -1,0 +1,49 @@
+{
+  "name": "ooju-vscode",
+  "displayName": "Ooju Language Support",
+  "description": "Syntax highlighting and editor support for Ooju (.oj) files.",
+  "version": "0.1.0",
+  "publisher": "ooju",
+  "license": "MIT",
+  "files": [
+    "language-configuration.json",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "syntaxes/**"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "scripts": {
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.6.2"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "ooju",
+        "aliases": [
+          "Ooju",
+          "ooju"
+        ],
+        "extensions": [
+          ".oj"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ooju",
+        "scopeName": "source.ooju",
+        "path": "./syntaxes/ooju.tmLanguage.json"
+      }
+    ]
+  }
+}

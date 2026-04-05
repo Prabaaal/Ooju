@@ -1,0 +1,177 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Ooju",
+  "scopeName": "source.ooju",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#builtins"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#variables"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.ooju",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.documentation.ooju",
+          "begin": "^\\s*///\\s*$",
+          "end": "^\\s*///\\s*$",
+          "patterns": [
+            {
+              "match": ".*",
+              "name": "comment.block.documentation.ooju"
+            }
+          ]
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.ooju",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.ooju",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.ooju",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.ooju",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.conditional.ooju",
+          "match": "\\b(jodi|nohole\\s+jodi|nahole\\s+jodi|nohole\\s+ba)\\b"
+        },
+        {
+          "name": "keyword.control.loop.ooju",
+          "match": "\\b(bare\\s+bare\\s+kora|jetialoike)\\b"
+        },
+        {
+          "name": "keyword.other.ooju",
+          "match": "\\b(dhora|bar|hoi|tetia|xoman|koi|besi|kom)\\b"
+        }
+      ]
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.ooju",
+          "match": "\\b(kua)\\b(?=\\s*\\()"
+        },
+        {
+          "name": "support.function.range-like.ooju",
+          "match": "\\b(bar)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.ooju",
+          "match": "\\b(True|False|None)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.ooju",
+          "match": "\\b\\d+(?:\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.comparison.ooju",
+          "match": "==|!=|<=|>=|<|>"
+        },
+        {
+          "name": "keyword.operator.assignment.ooju",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.arithmetic.ooju",
+          "match": "%|\\+|-|\\*|/"
+        },
+        {
+          "name": "keyword.operator.logical.ooju",
+          "match": "\\b(and|or|not)\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.section.group.begin.ooju",
+          "match": "\\("
+        },
+        {
+          "name": "punctuation.section.group.end.ooju",
+          "match": "\\)"
+        },
+        {
+          "name": "punctuation.separator.colon.ooju",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.separator.comma.ooju",
+          "match": ","
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.assignment.ooju",
+          "match": "(?<=\\bdhora\\s)[A-Za-z_][A-Za-z0-9_]*"
+        },
+        {
+          "name": "variable.other.ooju",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

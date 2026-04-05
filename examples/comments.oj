@@ -1,0 +1,13 @@
+// Single-line comment
+dhora x = 1 // Inline comment after code
+
+///
+These lines are ignored.
+kua("This will not run")
+dhora x = 999
+///
+
+jodi x 0t koi besi hoi, tetia: // Comments also work after conditions
+    kua("Comments are working")
+
+kua(x)

@@ -1,0 +1,12 @@
+// Fibonacci series: first 10 numbers
+dhora count = 0
+dhora first = 0
+dhora second = 1
+dhora limit = 10
+
+jetialoike (count < limit) bare bare kora:
+    kua(first)
+    dhora next_value = first + second
+    dhora first = second
+    dhora second = next_value
+    dhora count = count + 1

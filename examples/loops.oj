@@ -1,0 +1,15 @@
+dhora x = 3
+dhora y = 1
+3 bar bare bare kora:
+    kua(y)
+    dhora y = y + 1
+
+jetialoike (x > 0) bare bare kora:
+    kua(x)
+    dhora x = x - 1
+
+dhora z = 2
+bare bare kora:
+    kua(z)
+    dhora z = z - 1
+    jetialoike (z > 0)
