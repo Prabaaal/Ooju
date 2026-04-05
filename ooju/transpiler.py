@@ -80,7 +80,7 @@ def _split_inline_comment(line: str) -> tuple[str, str]:
             continue
 
         if not in_single_quote and not in_double_quote and line[index : index + 2] == LINE_COMMENT_PREFIX:
-            return line[:index].rstrip(), line[index + 2 :].strip()
+            return line[:index], line[index + 2 :].strip()
 
     return line.rstrip(), ""
 
@@ -118,7 +118,7 @@ def transpile(code: str) -> str:
             continue
 
         if stripped.startswith(BLOCK_COMMENT_MARKER):
-            new_lines.append(indent_str + "#" + stripped[2:])
+            new_lines.append(indent_str + "#" + stripped[3:])
             continue
 
         if stripped.startswith(LINE_COMMENT_PREFIX):

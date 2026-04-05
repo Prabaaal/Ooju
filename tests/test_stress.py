@@ -67,7 +67,12 @@ class CommentStressTests(unittest.TestCase):
         """/// at start of a line with extra text is an inline comment."""
         source = "/// some comment text\n"
         result = transpile(source)
-        self.assertIn("#", result)
+        self.assertEqual(result, "# some comment text\n")
+
+    def test_indented_triple_slash_inline_comment_preserves_indent(self) -> None:
+        source = "    /// nested comment\n"
+        result = transpile(source)
+        self.assertEqual(result, "    # nested comment\n")
 
     def test_nested_block_comments_disallowed(self) -> None:
         """Opening a block comment within a block comment should open/close."""
