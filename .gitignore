@@ -47,4 +47,9 @@ Icon
 *.swp
 *~
 node_modules/
-editors/vscode/ooju-vscode-0.1.0.vsix
+editors/vscode/*.vsix
+
+# Planning & internal notes (not for public repo)
+Upgradation.md
+planningpart1.txt
+planningpart2.txt
