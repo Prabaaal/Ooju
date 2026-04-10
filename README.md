@@ -1,16 +1,51 @@
-# 🌿 Ooju
-> *"Programming, made easy in Assamese"*
+<div align="center">
 
-Ooju (উজু) is a beginner-friendly programming language that uses Assamese-inspired keywords and transpiles to Python. Version `1.0.0` upgrades the project from a regex-only prototype into a tokenizer + parser + code generator pipeline with friendlier errors, stronger CLI tooling, and a more complete teaching-friendly syntax.
+# 🌿 Ooju · উজু
 
-## Quick Start
+**A beginner-friendly programming language written in Assamese**
+
+[![Version](https://img.shields.io/badge/version-1.0.0-brightgreen?style=flat-square)](https://github.com/Prabaaal/Ooju/releases)
+[![Python](https://img.shields.io/badge/python-3.7%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-passing-success?style=flat-square)](#)
+
+> *"Programming, made natural in Assamese"*
+
+Ooju (উজু — meaning *easy*) is a transpiled language that lets beginners write programs using Assamese keywords, lowering the barrier to coding for Assamese-speaking communities. It transpiles cleanly to Python through a full **Tokenizer → Parser → Code Generator** pipeline.
+
+</div>
+
+---
+
+## ✨ Features
+
+- 🗣️ **Assamese keywords** — write code in your own language
+- ⚡ **Runs on Python** — zero extra runtime needed
+- 🛠️ **CLI tools** — `run`, `compile`, `repl`, and `version`
+- 🔒 **Safe execution** — sandboxed builtins, no `exec` surprises
+- 🎨 **VS Code support** — syntax highlighting for `.oj` files
+- 📚 **Teaching-friendly** — clear, helpful error messages
+
+---
+
+## 📦 Installation
+
 ```bash
-pip install .
+# Clone the repo
+git clone https://github.com/Prabaaal/Ooju.git
+cd Ooju
+
+# Install (editable mode recommended for development)
+pip install -e .
 ```
 
-Create an Ooju program:
+---
 
-```ooju
+## 🚀 Quick Start
+
+Create a file called `hello.oj`:
+
+```
 kaam greet(name):
     kua("Namaskar, " + name)
 
@@ -30,40 +65,72 @@ See the generated Python:
 ooju run hello.oj --debug
 ```
 
-Compile to a Python file:
+Compile to a `.py` file:
 
 ```bash
 ooju compile hello.oj
 ```
 
-Other commands:
+---
 
-```bash
-ooju version
-ooju help
+## 📖 Language Reference
+
+### Variables
+```
+dhora x = 5
+dhora greet = "Namaskar!"
 ```
 
-## Language Notes
-`dhora x = 5` creates or updates a variable.
-`kua(...)` prints values.
-`lobo(...)` maps to Python's `input(...)`.
-`kaam add(a, b):` defines a function.
-`return value` works inside functions.
-`[1, 2, 3]`, dictionaries, slices, and most Python-style expressions are preserved.
-`jodi (condition) hoi, tetia:` works like `if condition:`.
-`nohole jodi ...` and `nahole jodi ...` work like `elif`.
-`nohole ba:` works like `else:`.
-`3 bar kora:` and `3 bar bare bare kora:` both repeat a block.
-`jetialoike (condition) bare bare kora:` works like a `while` loop.
-`bare bare kora:` followed by `jetialoike (condition)` works like a do-while loop.
-`//` starts a single-line or inline comment.
-Wrap ignored lines between `///` and `///` for a block comment.
-Use spaces for indentation. Tabs are rejected with a formatted `OojuError`.
+### Output & Input
+```
+kua("Namaskar!")          # print
+dhora name = lobo("Ki?)   # input
+```
 
-## Error Style
-Transpile errors now include the file, line, source code, issue, and a suggestion when available. Example:
+### Functions
+```
+kaam add(a, b):
+    return a + b
+```
 
-```text
+### Conditionals
+```
+jodi (x > 5) hoi, tetia:
+    kua("besi")
+nohole jodi (x > 3) hoi, tetia:
+    kua("moddhyom")
+nohole ba:
+    kua("kom")
+```
+
+### Loops
+```
+# Repeat N times
+3 bar kora:
+    kua("hello")
+
+# While loop
+jetialoike (x < 10) bare bare kora:
+    dhora x = x + 1
+```
+
+### Comments
+```
+// This is a single-line comment
+
+///
+This is a
+block comment
+///
+```
+
+---
+
+## ⚠️ Error Messages
+
+Ooju gives beginner-friendly errors with context and suggestions:
+
+```
 OojuError:
   File : hello.oj
   Line : 3
@@ -72,25 +139,70 @@ OojuError:
   Help : Did you mean: dhora x = 10 ?
 ```
 
-## Runtime Safety
-Ooju programs execute with a small safe builtins set instead of the full Python builtins namespace. Common helpers like `print`, `input`, `len`, `sum`, `range`, `min`, `max`, `int`, `float`, `str`, `list`, and `dict` are available by default.
+---
 
-## Architecture
-The transpiler now follows three stages:
+## 📂 Project Structure
 
-1. Tokenizer
-2. Parser that builds statement nodes such as assignments, functions, loops, and conditionals
-3. Code generator that emits Python
+```
+Ooju/
+├── ooju/               # Core language package
+│   ├── tokenizer.py    # Lexer — text → tokens
+│   ├── parser.py       # Parser — tokens → AST
+│   ├── codegen.py      # Code generator — AST → Python
+│   ├── transpiler.py   # Pipeline orchestrator
+│   ├── cli.py          # Command-line interface
+│   ├── repl.py         # Interactive REPL
+│   └── stdlib.py       # Safe builtins sandbox
+├── examples/           # Sample .oj programs
+├── tests/              # Pytest test suite
+├── editors/vscode/     # VS Code syntax extension
+├── pyproject.toml
+└── README.md
+```
 
-This keeps the language easier to grow while preserving the current lightweight feel.
+---
 
-## Examples
-Check the `examples/` folder for:
+## 🧪 Running Tests
 
-`hello.oj` for the simplest run.
-`fibonacci.oj` for a function-based demo.
-`chat_test.oj` for a small branching conversation flow.
-`number_report.oj` for loops and conditions together.
+```bash
+pip install pytest
+pytest tests/
+```
 
-## Editor Support
-Syntax highlighting for `.oj` files is available in the local VS Code extension at `editors/vscode`.
+---
+
+## 🎨 Editor Support
+
+Syntax highlighting for `.oj` files is available for **VS Code**.
+
+```bash
+cd editors/vscode
+npm install
+npm run package          # builds the .vsix
+code --install-extension ooju-vscode-*.vsix
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m "feat: add your feature"`
+4. Push and open a Pull Request
+
+Please ensure all tests pass before submitting.
+
+---
+
+## 📄 License
+
+MIT © [Prabal Gogoi](https://github.com/Prabaaal)
+
+---
+
+<div align="center">
+Made with ❤️ for Assamese learners
+</div>

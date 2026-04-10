@@ -1,18 +1,19 @@
-# Environments
+# ── Virtual Environments ──────────────────────────────────────────────────────
 venv/
 env/
 .env
+.env.*
 
-# Execution
+# ── Python Bytecode & Compiled Extensions ────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 
-# Packages
+# ── Build & Distribution ──────────────────────────────────────────────────────
 build/
-develop-eggs/
 dist/
+develop-eggs/
 downloads/
 eggs/
 .eggs/
@@ -24,32 +25,44 @@ var/
 wheels/
 share/python-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
+.installed.cfg
 
-# Testing and Coverage
+# ── Testing & Coverage ────────────────────────────────────────────────────────
 .coverage
 .tox/
 .nox/
 .pytest_cache/
+htmlcov/
 nosetests.xml
 coverage.xml
+*.lcov
 
-# IDEs and OS
+# ── IDEs ──────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
 .DS_Store
 .AppleDouble
 .LSOverride
 Icon
 
-# Temporary files
+# ── Misc ──────────────────────────────────────────────────────────────────────
 *.swp
 *~
 node_modules/
-editors/vscode/*.vsix
 
-# Planning & internal notes (not for public repo)
+# ── VS Code Extension (compiled artifacts) ────────────────────────────────────
+editors/vscode/*.vsix
+editors/vscode/package-lock.json
+
+# ── Transpiler output examples (generated files, not source) ──────────────────
+examples/*.py
+
+# ── Internal planning & notes (not for public repo) ───────────────────────────
 Upgradation.md
 planningpart1.txt
 planningpart2.txt
