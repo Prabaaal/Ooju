@@ -60,17 +60,6 @@ class TranspilerTests(unittest.TestCase):
         self.assertIn("if coin > 10:", out)
         self.assertIn("elif coin > 5:", out)
 
-    def test_supports_legacy_nahole_jodi_alias(self) -> None:
-        source = (
-            "jodi (coin > 10) hoi, tetia:\n"
-            '    kua("bor")\n'
-            "nahole jodi (coin > 5) hoi, tetia:\n"
-            '    kua("majot")\n'
-            "nohole ba:\n"
-            '    kua("kom")\n'
-        )
-        out = _code(source)
-        self.assertIn("elif coin > 5:", out)
 
     def test_supports_elif_natural_language(self) -> None:
         source = (

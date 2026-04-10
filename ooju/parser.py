@@ -88,16 +88,16 @@ class ListDeclNode:
 @dataclass
 class ListOpNode:
     var: str
-    op: str       # diya | ula | saja
+    op: str       # log_kora | del_kora
     arg: str
     line: int
 
 @dataclass
 class StringOpNode:
     var: str
-    op: str        # dangor | xoru | kata | gusi | ase | nidiya | dighol
+    op: str        # upor | tol | kata | gusua | khoja | nidiya | dighol
     args: list
-    result: str    
+    result: str
     line: int
 
 @dataclass
@@ -116,7 +116,7 @@ class DictDeclNode:
 @dataclass
 class DictOpNode:
     var: str
-    op: str       # diya | ula | lua
+    op: str       # log_kora | del_kora | loa
     args: list
     result: str
     line: int
@@ -263,7 +263,7 @@ class Parser:
 
     def parse_condition(self) -> str:
         t = self.peek()
-        is_elif = t.value in ("nohole", "nahole")
+        is_elif = t.value == "nohole"
 
         if is_elif:
             self.consume()  # nohole/nahole
@@ -347,15 +347,15 @@ class Parser:
                     self.skip_newlines()
                     return InputNode(name, prompt, t.line)
                 
-                if self.peek().value == "len_kora":
+                if self.peek().value == "len_jukha":
                     self.consume()
-                    self.expect(TT.LPAREN, "'len_kora' ৰ পিছত '(' lage")
+                    self.expect(TT.LPAREN, "'len_jukha' ৰ পিছত '(' lage")
                     target = self.expect(TT.IDENT, "list name lage").value
-                    self.expect(TT.RPAREN, "'len_kora(...)' বন্ধ কৰা নাই ')'")
+                    self.expect(TT.RPAREN, "'len_jukha(...)' বন্ধ কৰা নাই ')'")
                     self.skip_newlines()
                     return LenNode(name, target, t.line)
                     
-                if self.peek().value in ("tol", "uchol", "mul"):
+                if self.peek().value in ("mojiya", "floor", "ceil", "mul"):
                     op = self.consume().value
                     self.expect(TT.LPAREN, f"'{op}' ৰ পিছত '(' লাগে")
                     arg = self.collect_expr(stop_at_rparen=True)
@@ -414,13 +414,13 @@ class Parser:
             self.skip_newlines()
             return ListDeclNode(name, items, t.line)
 
-        if t.type == TT.KEYWORD and t.value == "mapa":
+        if t.type == TT.KEYWORD and t.value == "dict":
             self.consume()
             if self.peek().value != "kora":
-                raise ParseError(t.line, "'mapa' ৰ পিছত 'kora' লাগে", filename=self.filename)
+                raise ParseError(t.line, "'dict' ৰ পিছত 'kora' লাগে", filename=self.filename)
             self.consume()
-            name = self.expect(TT.IDENT, "'mapa kora' ৰ পিছত dict name লাগে").value
-            self.expect(TT.ASSIGN, f"'mapa kora {name}' ৰ পিছত '=' লাগে")
+            name = self.expect(TT.IDENT, "'dict kora' ৰ পিছত dict name লাগে").value
+            self.expect(TT.ASSIGN, f"'dict kora {name}' ৰ পিছত '=' লাগে")
             items = self.collect_until_newline()
             self.skip_newlines()
             return DictDeclNode(name, items, t.line)
@@ -454,9 +454,9 @@ class Parser:
             self.skip_newlines()
             return ReturnNode(value, t.line)
             
-        if t.type == TT.KEYWORD and t.value == "ano":
+        if t.type == TT.KEYWORD and t.value == "ona":
             self.consume()
-            path_tok = self.expect(TT.STRING, "'ano' ৰ পিছত file path লাগে — example: ano \"utils.oj\"")
+            path_tok = self.expect(TT.STRING, "'ona' ৰ পিছত file path লাগে — example: ona \"utils.oj\"")
             self.skip_newlines()
             return ImportNode(path_tok.value.strip('"\''), t.line)
             
@@ -488,12 +488,12 @@ class Parser:
 
             return TryCatchNode(body, error_var, catch_body, finally_body, t.line)
             
-        if t.type == TT.KEYWORD and t.value == "ওলা":
+        if t.type == TT.KEYWORD and t.value == "break":
             self.consume()
             self.skip_newlines()
             return BreakNode(t.line)
 
-        if t.type == TT.KEYWORD and t.value == "pase":
+        if t.type == TT.KEYWORD and t.value == "continue":
             self.consume()
             self.skip_newlines()
             return ContinueNode(t.line)
@@ -506,7 +506,7 @@ class Parser:
             elifs = []
             else_body = []
 
-            while self.peek().value in ("nohole", "nahole"):
+            while self.peek().value == "nohole":
                 next2 = self.peek(1)
                 if next2.value == "jodi":
                     elif_line = self.peek().line
@@ -614,26 +614,24 @@ class Parser:
             self.consume()
             op = self.consume().value
             
-            if op in ("diya", "ula", "lua"):
+            if op in ("log_kora", "del_kora", "loa"):
                 self.expect(TT.LPAREN, f"'{op}' ৰ পিছত '(' lage")
                 args_raw = self.collect_expr(stop_at_rparen=True)
                 self.expect(TT.RPAREN, f"'{op}(...)' বন্ধ কৰা নাই ')'")
                 self.skip_newlines()
-                
+
                 parts = [a.strip() for a in args_raw.split(",", 1)]
-                
-                if len(parts) == 2:
+
+                if op == "loa":
                     return DictOpNode(var, op, parts, "", t.line)
-                elif op == "lua":
+                elif op == "log_kora" and len(parts) == 2:
                     return DictOpNode(var, op, parts, "", t.line)
+                elif op == "del_kora" and len(parts) == 1:
+                    # could be list remove or dict del — handled in codegen by context
+                    return ListOpNode(var, op, parts[0], t.line)
                 else:
                     return ListOpNode(var, op, parts[0], t.line)
-            elif op == "saja":
-                self.expect(TT.LPAREN, "'saja' ৰ পিছত '(' lage")
-                self.expect(TT.RPAREN, "'saja()' বন্ধ কৰা নাই ')'")
-                self.skip_newlines()
-                return ListOpNode(var, op, "", t.line)
-            elif op in ("dangor", "xoru", "gusi"):
+            elif op in ("upor", "tol", "gusua", "Lgusua", "Rgusua"):
                 self.expect(TT.LPAREN, f"'{op}' ৰ পিছত '(' লাগে")
                 self.expect(TT.RPAREN, f"'{op}()' বন্ধ কৰা নাই ')'")
                 self.skip_newlines()
@@ -647,10 +645,10 @@ class Parser:
                 self.expect(TT.RPAREN, "'kata(...)' বন্ধ কৰা নাই ')'")
                 self.skip_newlines()
                 return StringOpNode(var, op, [start, end], "", t.line)
-            elif op == "ase":
-                self.expect(TT.LPAREN, "'ase' ৰ পিছত '(' লাগে")
+            elif op == "khoja":
+                self.expect(TT.LPAREN, "'khoja' ৰ পিছত '(' লাগে")
                 arg = self.collect_expr(stop_at_rparen=True)
-                self.expect(TT.RPAREN, "'ase(...)' বন্ধ কৰা নাই ')'")
+                self.expect(TT.RPAREN, "'khoja(...)' বন্ধ কৰা নাই ')'")
                 self.skip_newlines()
                 return StringOpNode(var, op, [arg], "", t.line)
             elif op == "nidiya":

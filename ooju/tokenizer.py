@@ -53,21 +53,36 @@ class TT(Enum):
 
 
 KEYWORDS = {
+    # core
     "dhora", "kua", "lua", "kaam", "return",
-    "jodi", "nohole", "nahole", "ba", "tetia",
+    # conditions
+    "jodi", "nohole", "ba", "tetia",
     "xoman", "hoi", "koi", "besi", "kom",
-    "bare", "kora", "jetialoike", "list",
-    "diya", "ula", "saja", "len_kora",
-    "ase", "t", "bar",
+    # loops
+    "bare", "kora", "jetialoike",
+    "bar", "break", "continue",
+    # list & dict
+    "list", "dict",
+    "log_kora", "del_kora", "loa",
+    "len_jukha", "sort",
+    "ase", "t",
+    # string ops
+    "upor", "tol", "kata",
+    "gusua", "Lgusua", "Rgusua",
+    "khoja", "nidiya", "dighol",
+    # math
+    "mojiya", "floor", "ceil",
+    "goon", "baki", "mul", "pi",
+    # stdlib
+    "random", "xomoy",
+    "file_poha", "file_likha", "http_lua",
+    # error handling
+    "koxa", "bhul", "hole", "xekh",
+    # import
+    "ona",
+    # python passthrough
     "True", "False", "None",
     "and", "or", "not", "in", "is",
-    "ano",
-    "koxa", "bhul", "hole", "xekh",
-    "ওলা", "pase",
-    "mapa",
-    "random", "xomoy", "file_poha", "file_likha", "http_lua",
-    "dangor", "xoru", "kata", "gusi", "nidiya", "dighol",
-    "tol", "uchol", "goon", "baki", "mul", "pi",
 }
 
 

@@ -38,27 +38,29 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
             add(f"{pad}{node.name} = {node.items}", node.line)
 
         elif isinstance(node, ListOpNode):
-            if node.op == "diya":
+            if node.op == "log_kora":
                 add(f"{pad}{node.var}.append({node.arg})", node.line)
-            elif node.op == "ula":
+            elif node.op == "del_kora":
                 add(f"{pad}{node.var}.remove({node.arg})", node.line)
-            elif node.op == "saja":
-                add(f"{pad}{node.var}.sort()", node.line)
 
         elif isinstance(node, StringOpNode):
-            if node.op == "dangor":
+            if node.op == "upor":
                 add(f"{pad}{node.var} = {node.var}.upper()", node.line)
-            elif node.op == "xoru":
+            elif node.op == "tol":
                 add(f"{pad}{node.var} = {node.var}.lower()", node.line)
             elif node.op == "kata":
                 if len(node.args) == 2:
                     add(f"{pad}{node.var} = {node.var}[{node.args[0]}:{node.args[1]}]", node.line)
                 else:
                     add(f"{pad}{node.var} = {node.var}[{node.args[0]}:]", node.line)
-            elif node.op == "gusi":
+            elif node.op == "gusua":
                 add(f"{pad}{node.var} = {node.var}.strip()", node.line)
-            elif node.op == "ase":
-                add(f"{pad}{node.var} = {node.args[0]} in {node.var}", node.line)
+            elif node.op == "Lgusua":
+                add(f"{pad}{node.var} = {node.var}.lstrip()", node.line)
+            elif node.op == "Rgusua":
+                add(f"{pad}{node.var} = {node.var}.rstrip()", node.line)
+            elif node.op == "khoja":
+                add(f"{pad}{node.var} = {node.var}.find({node.args[0]})", node.line)
             elif node.op == "nidiya":
                 add(f"{pad}{node.var} = {node.var}.replace({node.args[0]}, {node.args[1]})", node.line)
             elif node.op == "dighol":
@@ -67,10 +69,10 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
         elif isinstance(node, MathOpNode):
             if indent == 0 and "import math" not in lines:
                 lines.insert(0, "import math")
-            
-            if node.op == "tol":
+
+            if node.op in ("mojiya", "floor"):
                 expr = f"math.floor({node.args[0]})"
-            elif node.op == "uchol":
+            elif node.op == "ceil":
                 expr = f"math.ceil({node.args[0]})"
             elif node.op == "mul":
                 expr = f"math.sqrt({node.args[0]})"
@@ -80,7 +82,9 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                 expr = f"({node.args[0]} % {node.args[1]})"
             elif node.op == "pi":
                 expr = "math.pi"
-            
+            else:
+                expr = f"{node.op}({', '.join(node.args)})"
+
             if node.result:
                 add(f"{pad}{node.result} = {expr}", node.line)
             else:
@@ -90,11 +94,11 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
             add(f"{pad}{node.name} = {node.items}", node.line)
 
         elif isinstance(node, DictOpNode):
-            if node.op == "diya":
+            if node.op == "log_kora":
                 add(f"{pad}{node.var}[{node.args[0]}] = {node.args[1]}", node.line)
-            elif node.op == "ula":
+            elif node.op == "del_kora":
                 add(f"{pad}del {node.var}[{node.args[0]}]", node.line)
-            elif node.op == "lua":
+            elif node.op == "loa":
                 if node.result:
                     add(f"{pad}{node.result} = {node.var}[{node.args[0]}]", node.line)
                 else:
