@@ -30,7 +30,6 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Topic :: Software Development :: Compilers",
   "Topic :: Software Development :: Interpreters",
-  "Natural Language :: Assamese",
 ]
 
 [project.urls]

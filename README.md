@@ -31,11 +31,14 @@ Ooju (উজু — meaning *easy*) is a transpiled language that lets beginners
 ## 📦 Installation
 
 ```bash
-# Clone the repo
+pip install ooju
+```
+
+### Development Setup
+
+```bash
 git clone https://github.com/Prabaaal/Ooju.git
 cd Ooju
-
-# Install (editable mode recommended for development)
 pip install -e .
 ```
 
