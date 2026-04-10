@@ -1,0 +1,17 @@
+// Small chat-style demo
+kaam reply(message):
+    jodi (message == "hello") hoi, tetia:
+        return "Namaskar!"
+    nohole jodi (message == "help") hoi, tetia:
+        return "Moi etiya Ooju sikhai aso."
+    nohole ba:
+        return "Bujhibo parilu nohoi."
+
+dhora messages = ["hello", "help", "random"]
+dhora index = 0
+
+jetialoike (index < len(messages)) bare bare kora:
+    dhora current = messages[index]
+    kua("User: " + current)
+    kua("Bot: " + reply(current))
+    dhora index = index + 1

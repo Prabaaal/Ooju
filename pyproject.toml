@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ooju"
-version = "0.1.0"
+version = "1.0.0"
 description = "A beginner-friendly programming language in Assamese."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -12,3 +12,6 @@ dependencies = []
 
 [project.scripts]
 ooju = "ooju.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ooju*"]

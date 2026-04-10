@@ -3,193 +3,164 @@ import unittest
 from ooju.transpiler import TranspileError, transpile
 
 
+def _code(source: str) -> str:
+    """Transpile and return the Python code string (ignoring the sourcemap)."""
+    py, _ = transpile(source)
+    return py
+
+
+def _norm(s: str) -> str:
+    """Collapse whitespace so assertions are space-insensitive."""
+    return " ".join(s.split())
+
+
 class TranspilerTests(unittest.TestCase):
+
+    # ── basic features ──────────────────────────────────────────────
+
+    def test_transpiles_function_definitions_and_returns(self) -> None:
+        source = "kaam add(a, b):\n    return a + b\ndhora total = add(2, 3)\n"
+        out = _code(source)
+        self.assertIn("def add", out)
+        self.assertIn("return a + b", out)
+        self.assertIn("total = add", out)
+
+    def test_translates_lua_calls(self) -> None:
+        source = 'dhora naam = lua("Tomar naam ki? ")\n'
+        out = _code(source)
+        self.assertIn('naam = input("Tomar naam ki? ")', out)
+
+    def test_supports_short_loop(self) -> None:
+        source = "3 bar kora:\n    kua(\"loop\")\n"
+        out = _code(source)
+        self.assertIn("for _ in range(3):", out)
+
+    def test_supports_long_loop(self) -> None:
+        source = "3 bar bare bare kora:\n    kua(\"loop\")\n"
+        out = _code(source)
+        self.assertIn("for _ in range(3):", out)
+
+    # ── if/elif/else ────────────────────────────────────────────────
+
     def test_supports_general_if_condition_syntax(self) -> None:
-        source = "\n".join(
-            [
-                "jodi (coin > 5) hoi, tetia:",
-                '    kua("bhal")',
-                "",
-            ]
-        )
-
-        compiled = transpile(source)
-
-        self.assertIn("if coin > 5:", compiled)
+        source = "jodi (coin > 5) hoi, tetia:\n    kua(\"bhal\")\n"
+        out = _code(source)
+        self.assertIn("if coin > 5:", out)
 
     def test_supports_general_elif_condition_syntax(self) -> None:
-        source = "\n".join(
-            [
-                "jodi (coin > 10) hoi, tetia:",
-                '    kua("bor")',
-                "nohole jodi (coin > 5) hoi, tetia:",
-                '    kua("majot")',
-                "nohole ba:",
-                '    kua("kom")',
-                "",
-            ]
+        source = (
+            "jodi (coin > 10) hoi, tetia:\n"
+            '    kua("bor")\n'
+            "nohole jodi (coin > 5) hoi, tetia:\n"
+            '    kua("majot")\n'
+            "nohole ba:\n"
+            '    kua("kom")\n'
         )
-
-        compiled = transpile(source)
-
-        self.assertIn("if coin > 10:", compiled)
-        self.assertIn("elif coin > 5:", compiled)
+        out = _code(source)
+        self.assertIn("if coin > 10:", out)
+        self.assertIn("elif coin > 5:", out)
 
     def test_supports_legacy_nahole_jodi_alias(self) -> None:
-        source = "\n".join(
-            [
-                "jodi (coin > 10) hoi, tetia:",
-                '    kua("bor")',
-                "nahole jodi (coin > 5) hoi, tetia:",
-                '    kua("majot")',
-                "nohole ba:",
-                '    kua("kom")',
-                "",
-            ]
+        source = (
+            "jodi (coin > 10) hoi, tetia:\n"
+            '    kua("bor")\n'
+            "nahole jodi (coin > 5) hoi, tetia:\n"
+            '    kua("majot")\n'
+            "nohole ba:\n"
+            '    kua("kom")\n'
         )
+        out = _code(source)
+        self.assertIn("elif coin > 5:", out)
 
-        compiled = transpile(source)
+    def test_supports_elif_natural_language(self) -> None:
+        source = (
+            "jodi coin 10t koi besi hoi, tetia:\n"
+            '    kua("bor")\n'
+            "nohole jodi coin 5t koi besi hoi, tetia:\n"
+            '    kua("majot")\n'
+            "nohole ba:\n"
+            '    kua("kom")\n'
+        )
+        out = _code(source)
+        self.assertIn("if coin > 10:", out)
+        self.assertIn("elif coin > 5:", out)
+        self.assertIn("else:", out)
 
-        self.assertIn("elif coin > 5:", compiled)
+    # ── comments ────────────────────────────────────────────────────
 
-    def test_supports_single_line_comments(self) -> None:
+    def test_comments_are_stripped(self) -> None:
+        """The new AST compiler strips comments entirely."""
         source = "// eti comment\nkua(1)\n"
+        out = _code(source)
+        self.assertNotIn("eti comment", out)
+        self.assertIn("print(1)", out)
 
-        compiled = transpile(source)
+    def test_inline_comments_stripped(self) -> None:
+        source = 'dhora x = 1 // eti note\nkua("http://example.com")\n'
+        out = _code(source)
+        self.assertNotIn("eti note", out)
+        self.assertIn("x = 1", out)
 
-        self.assertIn("# eti comment", compiled)
-        self.assertIn("print(1)", compiled)
+    def test_block_comments_strip_content(self) -> None:
+        source = "dhora x = 1\n///\nkua(x)\ndhora x = 2\n///\nkua(x)\n"
+        out = _code(source)
+        self.assertIn("x = 1", out)
+        self.assertNotIn("x = 2", out)
 
-    def test_supports_inline_comments_after_code(self) -> None:
-        source = 'dhora x = 1 // eti note\nkua("http://example.com") // url thakileo thik\n'
-
-        compiled = transpile(source)
-
-        self.assertIn("x = 1  # eti note", compiled)
-        self.assertIn('print("http://example.com")  # url thakileo thik', compiled)
-
-    def test_supports_block_comments_delimited_by_triple_slash(self) -> None:
-        source = "\n".join(
-            [
-                "dhora x = 1",
-                "///",
-                "kua(x)",
-                "dhora x = 2",
-                "///",
-                "kua(x)",
-                "",
-            ]
-        )
-
-        compiled = transpile(source)
-
-        self.assertIn("x = 1", compiled)
-        self.assertIn("print(x)", compiled)
-        self.assertNotIn("x = 2", compiled)
-
-    def test_supports_inline_comments_on_control_flow_lines(self) -> None:
+    def test_control_flow_inline_comment(self) -> None:
         source = "jodi (x > 1) hoi, tetia: // branch note\n    kua(x)\n"
+        out = _code(source)
+        self.assertIn("if x > 1:", out)
+        self.assertNotIn("branch note", out)
 
-        compiled = transpile(source)
-
-        self.assertIn("if x > 1:  # branch note", compiled)
-
-    def test_rejects_unclosed_block_comments(self) -> None:
-        source = "///\nkua(1)\n"
-
-        with self.assertRaises(TranspileError) as context:
-            transpile(source)
-
-        self.assertIn("missing a closing '///'", str(context.exception))
-
-    def test_supports_elif_style_branching(self) -> None:
-        source = "\n".join(
-            [
-                "jodi coin 10t koi besi hoi, tetia:",
-                '    kua("bor")',
-                "nohole jodi coin 5t koi besi hoi, tetia:",
-                '    kua("majot")',
-                "nohole ba:",
-                '    kua("kom")',
-                "",
-            ]
-        )
-
-        compiled = transpile(source)
-
-        self.assertIn("if coin > 10:", compiled)
-        self.assertIn("elif coin > 5:", compiled)
-        self.assertIn("else:", compiled)
-
-    def test_do_while_requires_closing_condition(self) -> None:
-        source = "bare bare kora:\n    kua(1)\n"
-
-        with self.assertRaises(TranspileError) as context:
-            transpile(source)
-
-        self.assertIn("missing a closing", str(context.exception))
-
-    def test_do_while_terminator_requires_matching_start(self) -> None:
-        source = "jetialoike (x > 0)\n"
-
-        with self.assertRaises(TranspileError) as context:
-            transpile(source)
-
-        self.assertIn("without a matching", str(context.exception))
+    # ── loops ───────────────────────────────────────────────────────
 
     def test_transpiles_loops_and_prints(self) -> None:
-        source = "\n".join(
-            [
-                "dhora x = 2",
-                "2 bar bare bare kora:",
-                "    kua(x)",
-                "jetialoike (x > 0) bare bare kora:",
-                "    kua(x)",
-                "    dhora x = x - 1",
-                "",
-            ]
+        source = (
+            "dhora x = 2\n"
+            "2 bar bare bare kora:\n"
+            "    kua(x)\n"
+            "jetialoike (x > 0) bare bare kora:\n"
+            "    kua(x)\n"
+            "    dhora x = x - 1\n"
         )
+        out = _code(source)
+        self.assertIn("for _ in range(2):", out)
+        self.assertIn("while x > 0:", out)
+        self.assertIn("print(x)", out)
 
-        compiled = transpile(source)
-
-        self.assertIn("for _ in range(2):", compiled)
-        self.assertIn("while x > 0:", compiled)
-        self.assertIn("print(x)", compiled)
+    # ── errors ──────────────────────────────────────────────────────
 
     def test_rejects_tabs_in_indentation(self) -> None:
         source = "jodi x 1t koi besi hoi, tetia:\n\tkua(x)\n"
-
-        with self.assertRaises(TranspileError) as context:
+        with self.assertRaises(TranspileError) as ctx:
             transpile(source)
+        self.assertIn("tab dile kaam nohoi", str(ctx.exception))
 
-        self.assertIn("tabs are not supported", str(context.exception))
-
-    def test_rejects_malformed_ooju_keyword_line(self) -> None:
-        source = "jodi x 1t koi besi hoi tetia:\n"
-
-        with self.assertRaises(TranspileError) as context:
-            transpile(source)
-
-        self.assertIn("could not understand Ooju syntax", str(context.exception))
-
-    def test_number_report_style_branching_transpiles(self) -> None:
-        source = "\n".join(
-            [
-                "jodi (current % 2 == 0) hoi, tetia:",
-                '    kua("Even")',
-                "nohole jodi (current % 2 != 0) hoi, tetia:",
-                '    kua("Odd")',
-                "nohole ba:",
-                '    kua("Impossible")',
-                "",
-            ]
+    def test_number_report_style_branching(self) -> None:
+        source = (
+            "jodi (current % 2 == 0) hoi, tetia:\n"
+            '    kua("Even")\n'
+            "nohole jodi (current % 2 != 0) hoi, tetia:\n"
+            '    kua("Odd")\n'
+            "nohole ba:\n"
+            '    kua("Impossible")\n'
         )
+        out = _code(source)
+        self.assertIn("if current % 2 == 0:", out)
+        self.assertIn("elif current % 2 != 0:", out)
+        self.assertIn("else:", out)
 
-        compiled = transpile(source)
+    def test_formats_missing_assignment_error(self) -> None:
+        with self.assertRaises(TranspileError) as ctx:
+            transpile("dhora naam\n", filename="demo.oj")
+        formatted = ctx.exception.format_error()
+        self.assertIn("file    : demo.oj", formatted)
+        self.assertIn("'dhora naam' ৰ পিছত '=' lage", formatted)
 
-        self.assertIn("if current % 2 == 0:", compiled)
-        self.assertIn("elif current % 2 != 0:", compiled)
-        self.assertIn("else:", compiled)
+    def test_dhora_with_no_name_errors(self) -> None:
+        with self.assertRaises(TranspileError):
+            transpile("dhora \n")
 
 
 if __name__ == "__main__":

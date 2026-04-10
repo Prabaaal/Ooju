@@ -1,12 +1,15 @@
-// Fibonacci series: first 10 numbers
-dhora count = 0
-dhora first = 0
-dhora second = 1
-dhora limit = 10
+// Fibonacci demo with functions and lists
+kaam fib(n):
+    jodi (n <= 1) hoi, tetia:
+        return n
+    return fib(n - 1) + fib(n - 2)
 
-jetialoike (count < limit) bare bare kora:
-    kua(first)
-    dhora next_value = first + second
-    dhora first = second
-    dhora second = next_value
-    dhora count = count + 1
+dhora numbers = []
+dhora current = 0
+
+jetialoike (current < 8) bare bare kora:
+    numbers.append(fib(current))
+    dhora current = current + 1
+
+kua("First 8 Fibonacci numbers:")
+kua(numbers)
