@@ -41,6 +41,8 @@ class TT(Enum):
     RPAREN      = auto()
     LBRACKET    = auto()
     RBRACKET    = auto()
+    LBRACE      = auto()
+    RBRACE      = auto()
     COMMA       = auto()
     COLON       = auto()
     NEWLINE     = auto()
@@ -61,6 +63,8 @@ KEYWORDS = {
     # loops
     "bare", "kora", "jetialoike",
     "bar", "break", "continue",
+    # block delimiters
+    "homapto",
     # list & dict
     "list", "dict",
     "log_kora", "del_kora", "loa",
@@ -69,7 +73,7 @@ KEYWORDS = {
     # string ops
     "upor", "tol", "kata",
     "gusua", "Lgusua", "Rgusua",
-    "khoja", "nidiya", "dighol",
+    "bisara", "nidiya", "dighol",
     # math
     "mojiya", "floor", "ceil",
     "goon", "baki", "mul", "pi",
@@ -77,7 +81,7 @@ KEYWORDS = {
     "random", "xomoy",
     "file_poha", "file_likha", "http_lua",
     # error handling
-    "koxa", "bhul", "hole", "xekh",
+    "try", "bhul", "hole", "xekh",
     # import
     "ona",
     # python passthrough
@@ -145,6 +149,8 @@ TOKEN_SPEC = [
     ("RPAREN",      r"\)"),
     ("LBRACKET",    r"\["),
     ("RBRACKET",    r"\]"),
+    ("LBRACE",      r"\{"),
+    ("RBRACE",      r"\}"),
     ("COMMA",       r","),
     ("COLON",       r":"),
     ("DOT",         r"\."),

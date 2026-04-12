@@ -29,11 +29,11 @@ def run_repl():
                 pass
             line = input(prompt)
         except (KeyboardInterrupt, EOFError):
-            print("\nBye! Aahu khonja 👋")
+            print("\nBye! Akou ahiba 👋")
             break
 
         if not buffer and line.strip() in REPL_KEYWORDS:
-            print("Bye! Aahu khonja 👋")
+            print("Bye! Akou ahiba 👋")
             break
 
         # empty line = end of indented block

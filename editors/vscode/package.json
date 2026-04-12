@@ -5,7 +5,9 @@
   "version": "0.1.0",
   "publisher": "ooju",
   "license": "MIT",
+  "icon": "icon.png",
   "files": [
+    "icon.png",
     "language-configuration.json",
     "package.json",
     "README.md",

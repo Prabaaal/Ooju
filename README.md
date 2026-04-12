@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🌿 Ooju · উজু
+<img src="assets/ooju-logo.png" alt="Ooju logo — Bengali উজু in a glass sphere" width="220" />
+
+# Ooju · উজু
 
 **A beginner-friendly programming language written in Assamese**
 
@@ -148,6 +150,7 @@ OojuError:
 
 ```
 Ooju/
+├── assets/             # Branding (logo)
 ├── ooju/               # Core language package
 │   ├── tokenizer.py    # Lexer — text → tokens
 │   ├── parser.py       # Parser — tokens → AST

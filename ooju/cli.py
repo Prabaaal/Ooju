@@ -142,7 +142,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         try:
             run_repl()
         except KeyboardInterrupt:
-            print("\nBye! Aahu khonja 👋")
+            print("\nBye! Akou ahiba 👋")
         return 0
 
     if namespace.command is None:

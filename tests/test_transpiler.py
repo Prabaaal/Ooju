@@ -152,5 +152,139 @@ class TranspilerTests(unittest.TestCase):
             transpile("dhora \n")
 
 
+class BlockSyntaxTests(unittest.TestCase):
+    """Tests for all three block syntax styles: indent, homapto, brace."""
+
+    # ── Style 1: Indentation (default) ─────────────────────────────────────
+
+    def test_indent_style_if(self) -> None:
+        source = "jodi x > 5 tetia:\n    kua(\"big\")\n"
+        out = _code(source)
+        self.assertIn("if x > 5:", out)
+        self.assertIn('print("big")', out)
+
+    def test_indent_style_function(self) -> None:
+        source = "kaam greet(naam):\n    kua(naam)\n"
+        out = _code(source)
+        self.assertIn("def greet(naam):", out)
+        self.assertIn("print(naam)", out)
+
+    def test_indent_style_for_loop(self) -> None:
+        source = "3 bar kora:\n    kua(\"ho\")\n"
+        out = _code(source)
+        self.assertIn("for _ in range(3):", out)
+
+    # ── Style 2: Explicit end with 'homapto' ────────────────────────────────
+
+    def test_homapto_style_if(self) -> None:
+        source = "jodi x > 5 tetia:\nkua(\"big\")\nhomapto\n"
+        out = _code(source)
+        self.assertIn("if x > 5:", out)
+        self.assertIn('print("big")', out)
+
+    def test_homapto_style_function(self) -> None:
+        source = "kaam greet(naam):\nkua(naam)\nhomapto\n"
+        out = _code(source)
+        self.assertIn("def greet(naam):", out)
+        self.assertIn("print(naam)", out)
+
+    def test_homapto_style_for_loop(self) -> None:
+        source = "3 bar kora:\nkua(\"ho\")\nhomapto\n"
+        out = _code(source)
+        self.assertIn("for _ in range(3):", out)
+        self.assertIn('print("ho")', out)
+
+    def test_homapto_style_if_else(self) -> None:
+        source = (
+            "jodi x > 5 tetia:\n"
+            'kua("big")\n'
+            "homapto\n"
+            "nohole ba:\n"
+            'kua("small")\n'
+            "homapto\n"
+        )
+        out = _code(source)
+        self.assertIn("if x > 5:", out)
+        self.assertIn("else:", out)
+        self.assertIn('print("big")', out)
+        self.assertIn('print("small")', out)
+
+    def test_homapto_style_multiple_statements(self) -> None:
+        source = (
+            "jodi x > 0 tetia:\n"
+            "dhora y = x + 1\n"
+            'kua("pos")\n'
+            "homapto\n"
+        )
+        out = _code(source)
+        self.assertIn("if x > 0:", out)
+        self.assertIn("y = x + 1", out)
+        self.assertIn('print("pos")', out)
+
+    # ── Style 3: Bracket style {…} ─────────────────────────────────────────
+
+    def test_brace_style_if(self) -> None:
+        source = 'jodi x > 5 tetia {\n    kua("big")\n}\n'
+        out = _code(source)
+        self.assertIn("if x > 5:", out)
+        self.assertIn('print("big")', out)
+
+    def test_brace_style_if_no_colon(self) -> None:
+        """Brace style allows omitting the colon before '{'."""
+        source = 'jodi x > 5 tetia {\n    kua("big")\n}\n'
+        out = _code(source)
+        self.assertIn("if x > 5:", out)
+
+    def test_brace_style_function(self) -> None:
+        source = "kaam add(a, b) {\n    return a + b\n}\n"
+        out = _code(source)
+        self.assertIn("def add(", out)   # function defined
+        self.assertIn("return a + b", out)
+
+    def test_brace_style_for_loop(self) -> None:
+        source = '3 bar kora {\n    kua("ho")\n}\n'
+        out = _code(source)
+        self.assertIn("for _ in range(3):", out)
+        self.assertIn('print("ho")', out)
+
+    def test_brace_style_if_else(self) -> None:
+        source = (
+            'jodi x > 5 tetia {\n'
+            '    kua("big")\n'
+            '}\n'
+            'nohole ba {\n'
+            '    kua("small")\n'
+            '}\n'
+        )
+        out = _code(source)
+        self.assertIn("if x > 5:", out)
+        self.assertIn("else:", out)
+
+    def test_brace_style_while_loop(self) -> None:
+        source = (
+            "jetialoike (x > 0) bare bare kora {\n"
+            "    dhora x = x - 1\n"
+            "}\n"
+        )
+        out = _code(source)
+        self.assertIn("while x > 0:", out)
+        self.assertIn("x = x - 1", out)
+
+    # ── Mixing styles ─────────────────────────────────────────────────────
+
+    def test_brace_style_nested_in_indent(self) -> None:
+        """Outer indent-style function, inner brace-style if."""
+        source = (
+            "kaam check(x):\n"
+            "    jodi x > 0 tetia {\n"
+            '        kua("pos")\n'
+            "    }\n"
+        )
+        out = _code(source)
+        self.assertIn("def check(x):", out)
+        self.assertIn("if x > 0:", out)
+        self.assertIn('print("pos")', out)
+
+
 if __name__ == "__main__":
     unittest.main()

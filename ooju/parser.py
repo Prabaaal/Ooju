@@ -95,7 +95,7 @@ class ListOpNode:
 @dataclass
 class StringOpNode:
     var: str
-    op: str        # upor | tol | kata | gusua | khoja | nidiya | dighol
+    op: str        # upor | tol | kata | gusua | bisara | nidiya | dighol
     args: list
     result: str
     line: int
@@ -227,12 +227,21 @@ class Parser:
         while self.peek().type == TT.NEWLINE:
             self.consume()
 
+    def _expect_colon_or_brace(self, err: str):
+        """Consume a colon, OR allow skipping it if a '{' follows (brace-style blocks)."""
+        if self.peek().type == TT.COLON:
+            self.consume()
+        elif self.peek().type != TT.LBRACE:
+            raise ParseError(self.peek().line, err, filename=self.filename)
+
     def collect_expr(self, stop_at_rparen=False) -> str:
         parts = []
         depth = 0
         while self.peek().type not in (TT.NEWLINE, TT.EOF):
             t = self.peek()
             if t.type == TT.COLON and depth == 0:
+                break
+            if t.type == TT.LBRACE and depth == 0:
                 break
             if t.type == TT.LPAREN:
                 depth += 1
@@ -249,7 +258,8 @@ class Parser:
             parts.append(self.consume().value)
         return " ".join(parts).strip()
 
-    def parse_block(self) -> list:
+    def _parse_block_indented(self) -> list:
+        """Style 1: indentation-based block."""
         self.skip_newlines()
         self.expect(TT.INDENT, "block start hobo lagisil (indent nai)")
         body = []
@@ -260,6 +270,77 @@ class Parser:
         if self.peek().type == TT.DEDENT:
             self.consume()
         return body
+
+    def _parse_block_homapto(self) -> list:
+        """Style 2: explicit 'homapto' end keyword."""
+        # consume trailing newline after the colon
+        self.skip_newlines()
+        body = []
+        while True:
+            self.skip_newlines()
+            t = self.peek()
+            if t.type == TT.EOF:
+                break
+            if t.type == TT.KEYWORD and t.value == "homapto":
+                self.consume()   # eat homapto
+                self.skip_newlines()
+                break
+            # skip INDENT/DEDENT tokens produced by the tokenizer for inner lines
+            if t.type in (TT.INDENT, TT.DEDENT):
+                self.consume()
+                continue
+            stmt = self.parse_statement()
+            if stmt:
+                body.append(stmt)
+        return body
+
+    def _parse_block_brace(self) -> list:
+        """Style 3: { … } bracket block."""
+        self.expect(TT.LBRACE, "block start koribole '{' lage")
+        body = []
+        while True:
+            self.skip_newlines()
+            t = self.peek()
+            if t.type == TT.EOF:
+                break
+            if t.type == TT.RBRACE:
+                self.consume()   # eat }
+                self.skip_newlines()
+                break
+            # skip INDENT/DEDENT tokens produced by the tokenizer for inner lines
+            if t.type in (TT.INDENT, TT.DEDENT):
+                self.consume()
+                continue
+            stmt = self.parse_statement()
+            if stmt:
+                body.append(stmt)
+        return body
+
+    def parse_block(self) -> list:
+        """Dispatch to the correct block-parsing style based on next token."""
+        self.skip_newlines()
+        nxt = self.peek()
+        if nxt.type == TT.LBRACE:
+            return self._parse_block_brace()
+        # Look ahead past newlines to decide between homapto and indent style
+        # by scanning for a 'homapto' at the same or outer indent level.
+        # Simpler heuristic: if the very next non-newline token after the colon
+        # is NOT an INDENT, and the block opener was on a new line preceded by
+        # a call to expect(COLON), we just try indent-style.
+        # The explicit-homapto style is detected by the caller injecting a
+        # special flag; instead we rely on the fact that after a colon the line
+        # ends and the next physical line starts with an INDENT OR with content
+        # at the same level.  When there is NO INDENT we fall back to homapto.
+        # To keep it simple: after skip_newlines, if next is INDENT → style 1;
+        # if next is a keyword/ident/etc → style 2 (homapto).
+        if nxt.type == TT.NEWLINE:
+            # skip_newlines already consumed them above — shouldn't happen
+            self.skip_newlines()
+            nxt = self.peek()
+        if nxt.type == TT.INDENT:
+            return self._parse_block_indented()
+        # Not indented and not brace → homapto style
+        return self._parse_block_homapto()
 
     def parse_condition(self) -> str:
         t = self.peek()
@@ -287,11 +368,15 @@ class Parser:
                 parts.append(tok.value)
             while self.peek().value in ("hoi", "tetia") or self.peek().type == TT.COMMA:
                 self.consume()
-            self.expect(TT.COLON, "condition ৰ শেষত ':' লাগে")
+            # colon is required for indent/homapto styles; optional before {
+            if self.peek().type == TT.COLON:
+                self.consume()
+            elif self.peek().type != TT.LBRACE:
+                raise ParseError(t.line, "condition ৰ শেষত ':' লাগে", filename=self.filename)
             return " ".join(parts).strip()
 
         parts = []
-        while self.peek().type not in (TT.EOF, TT.COLON) and self.peek().value not in ("tetia", "hoi"):
+        while self.peek().type not in (TT.EOF, TT.COLON, TT.LBRACE) and self.peek().value not in ("tetia", "hoi"):
             if self.peek().value == "xoman":
                 self.consume()
                 parts.insert(-1, "==")
@@ -311,7 +396,11 @@ class Parser:
 
         while self.peek().value in ("hoi", "tetia") or self.peek().type == TT.COMMA:
             self.consume()
-        self.expect(TT.COLON, "condition ৰ শেষত ':' লাগে")
+        # colon is required for indent/homapto styles; optional before {
+        if self.peek().type == TT.COLON:
+            self.consume()
+        elif self.peek().type != TT.LBRACE:
+            raise ParseError(t.line, "condition ৰ শেষত ':' লাগে", filename=self.filename)
         return " ".join(parts).strip()
 
     def parse_statement(self):
@@ -443,8 +532,7 @@ class Parser:
             self.expect(TT.LPAREN, f"'kaam {name}' ৰ পিছত '(' lage")
             args = self.collect_expr(stop_at_rparen=True)
             self.expect(TT.RPAREN, "function args বন্ধ কৰা নাই ')'")
-            self.expect(TT.COLON, f"'kaam {name}(...)' ৰ শেষত ':' lage")
-            self.skip_newlines()
+            self._expect_colon_or_brace(f"'kaam {name}(...)' ৰ শেষত ':' lage")
             body = self.parse_block()
             return FunctionDefNode(name, args, body, t.line)
 
@@ -460,10 +548,9 @@ class Parser:
             self.skip_newlines()
             return ImportNode(path_tok.value.strip('"\''), t.line)
             
-        if t.type == TT.KEYWORD and t.value == "koxa":
+        if t.type == TT.KEYWORD and t.value == "try":
             self.consume()
-            self.expect(TT.COLON, "'koxa' ৰ শেষত ':' লাগে")
-            self.skip_newlines()
+            self._expect_colon_or_brace("'koxa' ৰ শেষত ':' লাগে")
             body = self.parse_block()
 
             error_var = "bhul"
@@ -476,14 +563,12 @@ class Parser:
                 if self.peek().value != "hole":
                     raise ParseError(t.line, "'dhora <name>' ৰ পিছত 'hole:' লাগে", filename=self.filename)
                 self.consume()
-                self.expect(TT.COLON, "'dhora bhul hole' ৰ শেষত ':' লাগে")
-                self.skip_newlines()
+                self._expect_colon_or_brace("'dhora bhul hole' ৰ শেষত ':' লাগে")
                 catch_body = self.parse_block()
 
             if self.peek().value == "xekh":
                 self.consume()
-                self.expect(TT.COLON, "'xekh' ৰ শেষত ':' লাগে")
-                self.skip_newlines()
+                self._expect_colon_or_brace("'xekh' ৰ শেষত ':' লাগে")
                 finally_body = self.parse_block()
 
             return TryCatchNode(body, error_var, catch_body, finally_body, t.line)
@@ -517,8 +602,7 @@ class Parser:
                 elif next2.value == "ba":
                     self.consume()
                     self.consume()
-                    self.expect(TT.COLON, "'nohole ba' ৰ শেষত ':' lage")
-                    self.skip_newlines()
+                    self._expect_colon_or_brace("'nohole ba' ৰ শেষত ':' lage")
                     else_body = self.parse_block()
                     break
                 else:
@@ -534,8 +618,7 @@ class Parser:
             if self.peek().value != "kora":
                 raise ParseError(t.line, "'bare bare' ৰ পিছত 'kora' lage", filename=self.filename)
             self.consume()
-            self.expect(TT.COLON, "'bare bare kora' ৰ শেষত ':' lage")
-            self.skip_newlines()
+            self._expect_colon_or_brace("'bare bare kora' ৰ শেষত ':' lage")
             body = self.parse_block()
             
             # The condition 'jetialoike (cond)' might be the last statement inside the block
@@ -569,8 +652,7 @@ class Parser:
                 self.skip_newlines()
                 return DoWhileConditionNode(condition, t.line)
             self.consume(); self.consume(); self.consume()
-            self.expect(TT.COLON, "'bare bare kora' ৰ শেষত ':' lage")
-            self.skip_newlines()
+            self._expect_colon_or_brace("'bare bare kora' ৰ শেষত ':' lage")
             body = self.parse_block()
             return WhileNode(condition, body, t.line)
 
@@ -580,7 +662,10 @@ class Parser:
             
             if self.peek().type == TT.COLON:
                 self.consume()
-                self.skip_newlines()
+                body = self.parse_block()
+                return ForNode(count, body, t.line)
+            
+            if self.peek().type == TT.LBRACE:
                 body = self.parse_block()
                 return ForNode(count, body, t.line)
             
@@ -591,8 +676,7 @@ class Parser:
             if self.peek().value == "kora":
                 self.consume()
                 
-            self.expect(TT.COLON, "for loop ৰ শেষত ':' lage")
-            self.skip_newlines()
+            self._expect_colon_or_brace("for loop ৰ শেষত ':' lage")
             body = self.parse_block()
             return ForNode(count, body, t.line)
 
@@ -604,8 +688,7 @@ class Parser:
             self.consume()
             while self.peek().value in ("tetia",) or self.peek().type == TT.COMMA:
                 self.consume()
-            self.expect(TT.COLON, "for-each loop ৰ শেষত ':' lage")
-            self.skip_newlines()
+            self._expect_colon_or_brace("for-each loop ৰ শেষত ':' lage")
             body = self.parse_block()
             return ForEachNode(item, iterable, body, t.line)
 
@@ -645,10 +728,10 @@ class Parser:
                 self.expect(TT.RPAREN, "'kata(...)' বন্ধ কৰা নাই ')'")
                 self.skip_newlines()
                 return StringOpNode(var, op, [start, end], "", t.line)
-            elif op == "khoja":
-                self.expect(TT.LPAREN, "'khoja' ৰ পিছত '(' লাগে")
+            elif op == "bisara":
+                self.expect(TT.LPAREN, "'bisara' ৰ পিছত '(' লাগে")
                 arg = self.collect_expr(stop_at_rparen=True)
-                self.expect(TT.RPAREN, "'khoja(...)' বন্ধ কৰা নাই ')'")
+                self.expect(TT.RPAREN, "'bisara(...)' বন্ধ কৰা নাই ')'")
                 self.skip_newlines()
                 return StringOpNode(var, op, [arg], "", t.line)
             elif op == "nidiya":
