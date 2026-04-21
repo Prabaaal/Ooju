@@ -546,11 +546,18 @@ class Parser:
             self.consume()
             path_tok = self.expect(TT.STRING, "'ona' ৰ পিছত file path লাগে — example: ona \"utils.oj\"")
             self.skip_newlines()
-            return ImportNode(path_tok.value.strip('"\''), t.line)
+            raw_path = path_tok.value.strip('"\'')
+            try:
+                from pathlib import Path
+                if self.filename and not Path(raw_path).is_absolute():
+                    raw_path = str(Path(self.filename).parent / raw_path)
+            except Exception:
+                pass
+            return ImportNode(raw_path, t.line)
             
         if t.type == TT.KEYWORD and t.value == "try":
             self.consume()
-            self._expect_colon_or_brace("'koxa' ৰ শেষত ':' লাগে")
+            self._expect_colon_or_brace("'try' ৰ শেষত ':' লাগে")
             body = self.parse_block()
 
             error_var = "bhul"
@@ -559,7 +566,7 @@ class Parser:
 
             if self.peek().value == "dhora":
                 self.consume()
-                error_var = self.consume().value
+                error_var = self.expect(TT.IDENT, "'dhora' ৰ পিছত error variable name লাগে").value
                 if self.peek().value != "hole":
                     raise ParseError(t.line, "'dhora <name>' ৰ পিছত 'hole:' লাগে", filename=self.filename)
                 self.consume()
@@ -681,11 +688,15 @@ class Parser:
             return ForNode(count, body, t.line)
 
         if t.type == TT.IDENT and self.peek(1).value == "t" and self.peek(2).value == "ase":
-            item = self.consume().value
-            self.consume()
-            self.consume()
-            iterable = self.consume().value
-            self.consume()
+            item = self.expect(TT.IDENT, "for-each loop item variable name lage").value
+            self.expect(TT.KEYWORD, "for-each syntax error: 't' lage")
+            if self.tokens[self.pos - 1].value != "t":
+                raise ParseError(t.line, "for-each syntax error: 't' lage", filename=self.filename)
+            self.expect(TT.KEYWORD, "for-each syntax error: 'ase' lage")
+            if self.tokens[self.pos - 1].value != "ase":
+                raise ParseError(t.line, "for-each syntax error: 'ase' lage", filename=self.filename)
+
+            iterable = self.collect_expr()
             while self.peek().value in ("tetia",) or self.peek().type == TT.COMMA:
                 self.consume()
             self._expect_colon_or_brace("for-each loop ৰ শেষত ':' lage")

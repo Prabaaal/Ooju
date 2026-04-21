@@ -11,12 +11,30 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
     """Returns (python_code, sourcemap) where sourcemap[py_line] = oj_line"""
     lines = []
     sourcemap = {}   # python line number → ooju line number
+    preamble: list[str] = []  # top-level imports that must stay at top
     pad = "    " * indent
 
     def add(line_str: str, oj_line: int = 0):
         lines.append(line_str)
         if oj_line:
             sourcemap[len(lines)] = oj_line
+
+    def require_preamble(line_str: str) -> None:
+        if indent != 0:
+            return
+        if line_str not in preamble:
+            preamble.append(line_str)
+
+    def extend_block(block_code: str, block_map: dict, fallback_line: str, fallback_oj_line: int) -> None:
+        """Extend `lines` with a multi-line block while keeping sourcemap aligned."""
+        if block_code and block_code.strip():
+            base = len(lines)
+            for py_ln, oj_ln in block_map.items():
+                # child maps are 1-based line numbers within their own output
+                sourcemap[base + py_ln] = oj_ln
+            lines.extend(block_code.splitlines())
+        else:
+            add(fallback_line, fallback_oj_line)
 
     for node in nodes:
         if isinstance(node, AssignNode):
@@ -59,7 +77,7 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                 add(f"{pad}{node.var} = {node.var}.lstrip()", node.line)
             elif node.op == "Rgusua":
                 add(f"{pad}{node.var} = {node.var}.rstrip()", node.line)
-            elif node.op == "khoja":
+            elif node.op == "bisara":
                 add(f"{pad}{node.var} = {node.var}.find({node.args[0]})", node.line)
             elif node.op == "nidiya":
                 add(f"{pad}{node.var} = {node.var}.replace({node.args[0]}, {node.args[1]})", node.line)
@@ -67,8 +85,7 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                 add(f"{pad}{node.var} = len({node.var})", node.line)
 
         elif isinstance(node, MathOpNode):
-            if indent == 0 and "import math" not in lines:
-                lines.insert(0, "import math")
+            require_preamble("import math")
 
             if node.op in ("mojiya", "floor"):
                 expr = f"math.floor({node.args[0]})"
@@ -110,9 +127,8 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                 "xomoy":     "from datetime import datetime",
                 "http_lua":  "import urllib.request",
             }
-            if indent == 0 and node.func in import_map:
-                if import_map[node.func] not in lines:
-                    lines.insert(0, import_map[node.func])
+            if node.func in import_map:
+                require_preamble(import_map[node.func])
 
             if node.func == "random":
                 expr = f"random.randint({node.args[0]}, {node.args[1]})"
@@ -147,11 +163,9 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                     body_nodes[-1] = ReturnNode(last.code, last.line)
                 
                 body_code, body_map = generate(body_nodes, indent + 1)
-                for py_ln, oj_ln in body_map.items():
-                    sourcemap[len(lines) + py_ln] = oj_ln
-                lines.append(body_code if body_code.strip() else f"{pad}    pass")
+                extend_block(body_code, body_map, f"{pad}    pass", node.line)
             else:
-                lines.append(f"{pad}    pass")
+                add(f"{pad}    pass", node.line)
 
         elif isinstance(node, ReturnNode):
             add(f"{pad}return {node.value}", node.line)
@@ -159,63 +173,53 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
         elif isinstance(node, IfNode):
             add(f"{pad}if {node.condition}:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
-            for py_ln, oj_ln in body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-            lines.append(body_code if body_code.strip() else f"{pad}    pass")
+            extend_block(body_code, body_map, f"{pad}    pass", node.line)
             
             for elif_clause in node.elifs:
                 add(f"{pad}elif {elif_clause.condition}:", elif_clause.line)
                 elif_body_code, elif_body_map = generate(elif_clause.body, indent + 1)
-                for py_ln, oj_ln in elif_body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-                lines.append(elif_body_code if elif_body_code.strip() else f"{pad}    pass")
+                extend_block(elif_body_code, elif_body_map, f"{pad}    pass", elif_clause.line)
                 
             if node.else_body:
                 add(f"{pad}else:", node.line)
                 else_body_code, else_body_map = generate(node.else_body, indent + 1)
-                for py_ln, oj_ln in else_body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-                lines.append(else_body_code if else_body_code.strip() else f"{pad}    pass")
+                extend_block(else_body_code, else_body_map, f"{pad}    pass", node.line)
 
         elif isinstance(node, ForNode):
             add(f"{pad}for _ in range({node.count}):", node.line)
             body_code, body_map = generate(node.body, indent + 1)
-            for py_ln, oj_ln in body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-            lines.append(body_code if body_code.strip() else f"{pad}    pass")
+            extend_block(body_code, body_map, f"{pad}    pass", node.line)
 
         elif isinstance(node, ForEachNode):
             add(f"{pad}for {node.item} in {node.iterable}:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
-            for py_ln, oj_ln in body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-            lines.append(body_code if body_code.strip() else f"{pad}    pass")
+            extend_block(body_code, body_map, f"{pad}    pass", node.line)
 
         elif isinstance(node, WhileNode):
             add(f"{pad}while {node.condition}:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
-            for py_ln, oj_ln in body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-            lines.append(body_code if body_code.strip() else f"{pad}    pass")
+            extend_block(body_code, body_map, f"{pad}    pass", node.line)
 
         elif isinstance(node, DoWhileNode):
             add(f"{pad}while True:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
-            for py_ln, oj_ln in body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-            lines.append(body_code if body_code.strip() else "")
+            extend_block(body_code, body_map, "", 0)
             add(f"{pad}    if not ({node.condition}): break", node.line)
 
         elif isinstance(node, TryCatchNode):
             add(f"{pad}try:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
-            for py_ln, oj_ln in body_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-            lines.append(body_code if body_code.strip() else f"{pad}    pass")
+            extend_block(body_code, body_map, f"{pad}    pass", node.line)
             
             if node.catch_body:
                 add(f"{pad}except Exception as {node.error_var}:", node.line)
                 catch_code, catch_map = generate(node.catch_body, indent + 1)
-                for py_ln, oj_ln in catch_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-                lines.append(catch_code if catch_code.strip() else f"{pad}    pass")
+                extend_block(catch_code, catch_map, f"{pad}    pass", node.line)
                 
             if node.finally_body:
                 add(f"{pad}finally:", node.line)
                 finally_code, finally_map = generate(node.finally_body, indent + 1)
-                for py_ln, oj_ln in finally_map.items(): sourcemap[len(lines) + py_ln] = oj_ln
-                lines.append(finally_code if finally_code.strip() else f"{pad}    pass")
+                extend_block(finally_code, finally_map, f"{pad}    pass", node.line)
 
         elif isinstance(node, ImportNode):
             add(f"{pad}# imported from: {node.path}", node.line)
@@ -227,9 +231,7 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                 imported_tokens = tokenize(imported_code, node.path)
                 imported_ast = parse(imported_tokens, node.path)
                 imported_py, imported_map = generate(imported_ast, indent)
-                for py_ln, oj_ln in imported_map.items():
-                    sourcemap[len(lines) + py_ln] = oj_ln
-                lines.append(imported_py)
+                extend_block(imported_py, imported_map, f"{pad}    pass", node.line)
             except FileNotFoundError:
                 add(f"{pad}# oi! '{node.path}' file tu bisari pua nai", node.line)
 
@@ -242,4 +244,7 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
         elif isinstance(node, RawNode):
             add(f"{pad}{node.code}", node.line)
 
+    if indent == 0 and preamble:
+        shifted = {py_ln + len(preamble): oj_ln for py_ln, oj_ln in sourcemap.items()}
+        return "\n".join([*preamble, *lines]), shifted
     return "\n".join(lines), sourcemap
