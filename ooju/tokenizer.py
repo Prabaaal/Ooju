@@ -54,6 +54,60 @@ class TT(Enum):
     RAW         = auto()
 
 
+ASSAMESE_TO_ROMANIZED_KEYWORDS = {
+    "ধৰা": "dhora",
+    "কোৱা": "kua",
+    "লোৱা": "lua",
+    "কাম": "kaam",
+    "যদি": "jodi",
+    "নহলে": "nohole",
+    "বা": "ba",
+    "তেতিয়া": "tetia",
+    "বাৰে": "bare",
+    "কৰা": "kora",
+    "যেতিয়ালৈকে": "jetialoike",
+    "বাৰ": "bar",
+    "সমাপ্ত": "homapto",
+    
+    "লগ_কৰা": "log_kora",
+    "ডেল_কৰা": "del_kora",
+    "লেন_জোখা": "len_jukha",
+    "চৰ্ট": "sort",
+    "আছে": "ase",
+    "ত": "t",
+    
+    "ওপৰ": "upor",
+    "তল": "tol",
+    "কটা": "kata",
+    "গুচোৱা": "gusua",
+    "Lগুচোৱা": "Lgusua",
+    "Rগুচোৱা": "Rgusua",
+    "বিচৰা": "bisara",
+    "নিদিয়া": "nidiya",
+    "দীঘল": "dighol",
+    
+    "মজিয়া": "mojiya",
+    "ফ্লোৰ": "floor",
+    "চিল": "ceil",
+    "গুণ": "goon",
+    "বাকী": "baki",
+    "মূল": "mul",
+    "পাই": "pi",
+    
+    "ৰেণ্ডম": "random",
+    "সময়": "xomoy",
+    "ফাইল_পঢ়া": "file_poha",
+    "ফাইল_লিখা": "file_likha",
+    "http_লোৱা": "http_lua",
+    
+    "ট্ৰাই": "try",
+    "ভুল": "bhul",
+    "হলে": "hole",
+    "শেষ": "xekh",
+    
+    "অনা": "ona",
+}
+
 KEYWORDS = {
     # core
     "dhora", "kua", "lua", "kaam", "return",
@@ -87,7 +141,7 @@ KEYWORDS = {
     # python passthrough
     "True", "False", "None",
     "and", "or", "not", "in", "is",
-}
+} | set(ASSAMESE_TO_ROMANIZED_KEYWORDS.keys())
 
 
 @dataclass
@@ -120,6 +174,7 @@ class TokenizeError(Exception):
         parts.append(f"  kiba nai: {self.message}")
         parts.append("")
         parts.append(f"Arey bhai!, Line {self.line}-t eitu ki likhisa? Bhal ke sua! ({self.message})")
+
         parts.append("")
         return "\n".join(parts)
 
@@ -231,6 +286,8 @@ def tokenize(code: str, filename: str = "") -> list[Token]:
         elif kind == "STRING":
             tokens.append(Token(TT.STRING, value, line_num, col))
         elif kind == "IDENT":
+            if value in ASSAMESE_TO_ROMANIZED_KEYWORDS:
+                value = ASSAMESE_TO_ROMANIZED_KEYWORDS[value]
             tt = TT.KEYWORD if value in KEYWORDS else TT.IDENT
             tokens.append(Token(tt, value, line_num, col))
         else:

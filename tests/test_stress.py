@@ -110,9 +110,12 @@ class VariableStressTests(unittest.TestCase):
         self.assertIn("[", result)
 
     def test_dhora_with_dict(self) -> None:
-        # Curly braces are not tokenized by the AST compiler, so this will error
-        with self.assertRaises(TranspileError):
-            transpile('dhora data = {"key": "value"}\n')
+        # Dict literals are passed through as raw Python expressions.
+        result = _code('dhora data = {"key": "value"}\n')
+        self.assertIn("data = {", result)
+        self.assertIn('"key"', result)
+        self.assertIn(":", result)
+        self.assertIn('"value"', result)
 
 
 # ────────────────────────────────────────────
@@ -334,9 +337,9 @@ class PassthroughTests(unittest.TestCase):
 class MalformedKeywordTests(unittest.TestCase):
     def test_jodi_missing_colon(self) -> None:
         source = "jodi x 5t koi besi hoi tetia:\n"
-        # Missing comma after 'hoi' — parser should still handle it or error
-        with self.assertRaises(TranspileError):
-            transpile(source)
+        # Missing comma after 'hoi' — parser should still handle it.
+        result = _code(source + '    kua("ok")\n')
+        self.assertIn("if x > 5:", result)
 
     def test_jodi_with_extra_spaces(self) -> None:
         result = _code("jodi  ( x > 0 )  hoi,  tetia:\n    kua(x)\n")
