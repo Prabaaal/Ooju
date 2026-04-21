@@ -203,7 +203,7 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
         elif isinstance(node, DoWhileNode):
             add(f"{pad}while True:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
-            extend_block(body_code, body_map, "", 0)
+            extend_block(body_code, body_map, f"{pad}    pass", node.line)
             add(f"{pad}    if not ({node.condition}): break", node.line)
 
         elif isinstance(node, TryCatchNode):

@@ -551,8 +551,8 @@ class Parser:
                 from pathlib import Path
                 if self.filename and not Path(raw_path).is_absolute():
                     raw_path = str(Path(self.filename).parent / raw_path)
-            except Exception:
-                pass
+            except (OSError, ValueError):
+                pass  # Fall back to raw path if resolution fails
             return ImportNode(raw_path, t.line)
             
         if t.type == TT.KEYWORD and t.value == "try":
