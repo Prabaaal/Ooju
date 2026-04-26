@@ -1,8 +1,8 @@
 import sys
-from ooju.tokenizer import tokenize, TokenizeError, TT
-from ooju.parser import parse, ParseError, MultiParseError
-from ooju.codegen import generate
-from ooju.transpiler import TranspileError
+from ooju.core.tokenizer import tokenize, TokenizeError, TT
+from ooju.core.parser import parse, ParseError, MultiParseError
+from ooju.core.codegen import generate
+from ooju.core.transpiler import TranspileError
 
 BANNER = """
 ┌─────────────────────────────────┐

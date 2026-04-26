@@ -1,6 +1,6 @@
 import unittest
 
-from ooju.transpiler import TranspileError, transpile
+from ooju.core.transpiler import TranspileError, transpile
 
 
 def _code(source: str) -> str:

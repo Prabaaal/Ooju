@@ -1,6 +1,6 @@
-from ooju.tokenizer import tokenize, TokenizeError
-from ooju.parser import parse, ParseError, MultiParseError
-from ooju.codegen import generate
+from ooju.core.tokenizer import tokenize, TokenizeError
+from ooju.core.parser import parse, ParseError, MultiParseError
+from ooju.core.codegen import generate
 
 
 class TranspileError(Exception):

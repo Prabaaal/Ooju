@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from ooju import __version__
-from ooju.transpiler import TranspileError, transpile
-from ooju.parser import MultiParseError
+from ooju.core.transpiler import TranspileError, transpile
+from ooju.core.parser import MultiParseError
 
 
 SAFE_BUILTINS = {
@@ -138,7 +138,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     if namespace.command == "repl":
-        from ooju.repl import run_repl
+        from ooju.cli.repl import run_repl
         try:
             run_repl()
         except KeyboardInterrupt:

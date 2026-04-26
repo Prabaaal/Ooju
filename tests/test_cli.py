@@ -4,7 +4,7 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-from ooju.cli import main
+from ooju.cli.main import main
 
 
 class CliTests(unittest.TestCase):

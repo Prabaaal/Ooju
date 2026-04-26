@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, List
-from ooju.tokenizer import Token, TT, TokenizeError
+from ooju.core.tokenizer import Token, TT, TokenizeError
 
 # ─── AST Nodes ────────────────────────────────────────────────────────────────
 

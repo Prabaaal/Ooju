@@ -1,11 +1,11 @@
-from ooju.parser import (
+from ooju.core.parser import (
     AssignNode, PrintNode, InputNode, FunctionDefNode, ReturnNode,
     IfNode, ElifClause, ForNode, ForEachNode, WhileNode, DoWhileNode,
     ListDeclNode, ListOpNode, LenNode, RawNode, StringOpNode,
     MathOpNode, DictDeclNode, DictOpNode, StdlibNode, ImportNode,
     TryCatchNode, BreakNode, ContinueNode, AugAssignNode, ReassignNode
 )
-from ooju.stdlib import STDLIB_IMPORTS
+from ooju.core.stdlib import STDLIB_IMPORTS
 
 import re as _re
 
@@ -260,8 +260,8 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
             try:
                 from pathlib import Path
                 imported_code = Path(node.path).read_text(encoding="utf-8")
-                from ooju.tokenizer import tokenize
-                from ooju.parser import parse
+                from ooju.core.tokenizer import tokenize
+                from ooju.core.parser import parse
                 imported_tokens = tokenize(imported_code, node.path)
                 imported_ast = parse(imported_tokens, node.path)
                 imported_py, imported_map = generate(imported_ast, indent)

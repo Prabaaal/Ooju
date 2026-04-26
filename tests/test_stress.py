@@ -11,8 +11,8 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-from ooju.cli import main as cli_main
-from ooju.transpiler import TranspileError, transpile
+from ooju.cli.main import main as cli_main
+from ooju.core.transpiler import TranspileError, transpile
 
 
 def _code(source: str) -> str:
