@@ -3,11 +3,34 @@ from ooju.parser import (
     IfNode, ElifClause, ForNode, ForEachNode, WhileNode, DoWhileNode,
     ListDeclNode, ListOpNode, LenNode, RawNode, StringOpNode,
     MathOpNode, DictDeclNode, DictOpNode, StdlibNode, ImportNode,
-    TryCatchNode, BreakNode, ContinueNode, AugAssignNode
+    TryCatchNode, BreakNode, ContinueNode, AugAssignNode, ReassignNode
 )
+from ooju.stdlib import STDLIB_IMPORTS
+
+import re as _re
+
+# ── Ooju-first keyword → Python translation ───────────────────────────────────
+# Assamese-origin boolean/logic keywords that appear verbatim in collected
+# expression strings and must be mapped to Python equivalents before emit.
+_OOJU_TO_PY: dict[str, str] = {
+    "xahi":   "True",
+    "mitha":  "False",
+    "nai":    "None",
+    "aru":    "and",
+    "nahole": "or",
+    "nohoi":  "not",
+}
+_OOJU_KW_RE = _re.compile(
+    r'\b(' + '|'.join(_re.escape(k) for k in _OOJU_TO_PY) + r')\b'
+)
+
+def _translate_expr(expr: str) -> str:
+    """Replace Ooju-first keywords inside an expression string with Python equivalents."""
+    return _OOJU_KW_RE.sub(lambda m: _OOJU_TO_PY[m.group(1)], expr)
 
 
 def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
+
     """Returns (python_code, sourcemap) where sourcemap[py_line] = oj_line"""
     lines = []
     sourcemap = {}   # python line number → ooju line number
@@ -38,13 +61,18 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
 
     for node in nodes:
         if isinstance(node, AssignNode):
-            add(f"{pad}{node.name} = {node.value}", node.line)
+            add(f"{pad}{node.name} = {_translate_expr(node.value)}", node.line)
 
         elif isinstance(node, AugAssignNode):
-            add(f"{pad}{node.name} {node.op} {node.value}", node.line)
+            add(f"{pad}{node.name} {node.op} {_translate_expr(node.value)}", node.line)
+
+        elif isinstance(node, ReassignNode):
+            # sali keyword — semantically identical to reassign in Python;
+            # future analyser pass can enforce that dhora was used first.
+            add(f"{pad}{node.name} = {_translate_expr(node.value)}", node.line)
 
         elif isinstance(node, PrintNode):
-            add(f"{pad}print({node.args})", node.line)
+            add(f"{pad}print({_translate_expr(node.args)})", node.line)
 
         elif isinstance(node, InputNode):
             add(f"{pad}{node.name} = input({node.prompt})", node.line)
@@ -122,22 +150,27 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                     add(f"{pad}{node.var}[{node.args[0]}]", node.line)
 
         elif isinstance(node, StdlibNode):
-            import_map = {
-                "random": "import random",
-                "xomoy":     "from datetime import datetime",
-                "http_lua":  "import urllib.request",
-            }
-            if node.func in import_map:
-                require_preamble(import_map[node.func])
+            # Use STDLIB_IMPORTS as the single source of truth (connected from stdlib.py)
+            import_stmt = STDLIB_IMPORTS.get(node.func)
+            if import_stmt:
+                require_preamble(import_stmt)
 
             if node.func == "random":
                 expr = f"random.randint({node.args[0]}, {node.args[1]})"
             elif node.func == "xomoy":
                 expr = "datetime.now()"
             elif node.func == "file_poha":
-                expr = f"open({node.args[0]}).read()"
+                # FIXED: add encoding, open()-without-close() resource leak patched
+                expr = f"open({node.args[0]}, encoding='utf-8').read()"
             elif node.func == "file_likha":
-                expr = f"open({node.args[0]}, 'w').write({node.args[1]})"
+                # FIXED: emit a with-block to avoid dangling file handle
+                with_lines = [
+                    f"{pad}with open({node.args[0]}, 'w', encoding='utf-8') as _f:",
+                    f"{pad}    _f.write({node.args[1]})",
+                ]
+                for wl in with_lines:
+                    add(wl, node.line)
+                continue  # already added, skip the add() at the bottom
             elif node.func == "http_lua":
                 expr = f"urllib.request.urlopen({node.args[0]}).read()"
             else:
@@ -168,15 +201,15 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
                 add(f"{pad}    pass", node.line)
 
         elif isinstance(node, ReturnNode):
-            add(f"{pad}return {node.value}", node.line)
+            add(f"{pad}return {_translate_expr(node.value)}", node.line)
 
         elif isinstance(node, IfNode):
-            add(f"{pad}if {node.condition}:", node.line)
+            add(f"{pad}if {_translate_expr(node.condition)}:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
             extend_block(body_code, body_map, f"{pad}    pass", node.line)
             
             for elif_clause in node.elifs:
-                add(f"{pad}elif {elif_clause.condition}:", elif_clause.line)
+                add(f"{pad}elif {_translate_expr(elif_clause.condition)}:", elif_clause.line)
                 elif_body_code, elif_body_map = generate(elif_clause.body, indent + 1)
                 extend_block(elif_body_code, elif_body_map, f"{pad}    pass", elif_clause.line)
                 
@@ -191,12 +224,12 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
             extend_block(body_code, body_map, f"{pad}    pass", node.line)
 
         elif isinstance(node, ForEachNode):
-            add(f"{pad}for {node.item} in {node.iterable}:", node.line)
+            add(f"{pad}for {node.item} in {_translate_expr(node.iterable)}:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
             extend_block(body_code, body_map, f"{pad}    pass", node.line)
 
         elif isinstance(node, WhileNode):
-            add(f"{pad}while {node.condition}:", node.line)
+            add(f"{pad}while {_translate_expr(node.condition)}:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
             extend_block(body_code, body_map, f"{pad}    pass", node.line)
 
@@ -204,7 +237,7 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
             add(f"{pad}while True:", node.line)
             body_code, body_map = generate(node.body, indent + 1)
             extend_block(body_code, body_map, f"{pad}    pass", node.line)
-            add(f"{pad}    if not ({node.condition}): break", node.line)
+            add(f"{pad}    if not ({_translate_expr(node.condition)}): break", node.line)
 
         elif isinstance(node, TryCatchNode):
             add(f"{pad}try:", node.line)
@@ -242,7 +275,7 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
             add(f"{pad}continue", node.line)
 
         elif isinstance(node, RawNode):
-            add(f"{pad}{node.code}", node.line)
+            add(f"{pad}{_translate_expr(node.code)}", node.line)
 
     if indent == 0 and preamble:
         shifted = {py_ln + len(preamble): oj_ln for py_ln, oj_ln in sourcemap.items()}

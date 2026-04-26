@@ -1,5 +1,5 @@
 import sys
-from ooju.tokenizer import tokenize, TokenizeError
+from ooju.tokenizer import tokenize, TokenizeError, TT
 from ooju.parser import parse, ParseError, MultiParseError
 from ooju.codegen import generate
 from ooju.transpiler import TranspileError
@@ -14,17 +14,37 @@ BANNER = """
 REPL_KEYWORDS = ("jau", "exit", "quit", "oba")
 
 
+def _is_complete(code: str) -> bool:
+    """Return True if `code` is a syntactically complete Ooju program.
+
+    Uses the tokenizer to count INDENT/DEDENT depth rather than scanning for
+    a raw ':' character — the old approach broke for ':' inside strings and
+    for brace-style blocks.  (Phase 4 fix)
+    """
+    try:
+        tokens = tokenize(code, "<repl>")
+        depth = 0
+        for t in tokens:
+            if t.type == TT.INDENT:
+                depth += 1
+            elif t.type == TT.DEDENT:
+                depth -= 1
+        return depth == 0
+    except TokenizeError:
+        # Tokenize error may mean incomplete input — keep buffering
+        return False
+
+
 def run_repl():
     print(BANNER)
     session_globals = {"__name__": "__main__"}
-    buffer = []
-    indent_expected = False
+    buffer: list[str] = []
 
     while True:
         try:
             prompt = "... " if buffer else "ooju> "
             try:
-                import readline
+                import readline  # noqa: F401 — enables line editing on Unix
             except ImportError:
                 pass
             line = input(prompt)
@@ -36,11 +56,10 @@ def run_repl():
             print("Bye! Akou ahiba 👋")
             break
 
-        # empty line = end of indented block
+        # Empty line while buffering = user signals end of block
         if line.strip() == "" and buffer:
             full_code = "\n".join(buffer)
             buffer = []
-            indent_expected = False
             _execute(full_code, session_globals)
             continue
 
@@ -49,13 +68,8 @@ def run_repl():
 
         buffer.append(line)
 
-        # if line ends with ':', next line is indented block
-        if line.rstrip().endswith(":"):
-            indent_expected = True
-            continue
-
-        # if we're not in a block, execute immediately
-        if not indent_expected:
+        # Use tokenizer-based completeness check (FIXED: was raw endswith(":"))
+        if _is_complete("\n".join(buffer)):
             full_code = "\n".join(buffer)
             buffer = []
             _execute(full_code, session_globals)

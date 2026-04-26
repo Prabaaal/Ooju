@@ -4,39 +4,38 @@
 
 # Ooju · উজু
 
-**A beginner-friendly programming language written in Assamese**
+**প্রোগ্রামিং এবাৰ অসমীয়াত!**
 
 [![Version](https://img.shields.io/badge/version-1.0.0-brightgreen?style=flat-square)](https://github.com/Prabaaal/Ooju/releases)
 [![Python](https://img.shields.io/badge/python-3.7%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-passing-success?style=flat-square)](#)
 
-> *"Programming, made natural in Assamese"*
-
-Ooju (উজু — meaning *easy*) is a transpiled language that lets beginners write programs using Assamese keywords, lowering the barrier to coding for Assamese-speaking communities. It transpiles cleanly to Python through a full **Tokenizer → Parser → Code Generator** pipeline.
+> *ক'ডিং সদায়ে সহজ — তোমাৰ মাতৃভাষাত!*
 
 </div>
 
 ---
 
-## ✨ Features
+## 🌟 কিয় Ooju?
 
-- 🗣️ **Assamese keywords** — write code in your own language
-- ⚡ **Runs on Python** — zero extra runtime needed
-- 🛠️ **CLI tools** — `run`, `compile`, `repl`, and `version`
-- 🔒 **Safe execution** — sandboxed builtins, no `exec` surprises
-- 🎨 **VS Code support** — syntax highlighting for `.oj` files
-- 📚 **Teaching-friendly** — clear, helpful error messages
+তুমি কি কি পাৰে:
+- 🗣️ **অসমীয়াত ক'ড লিখা** — ভাইটা ভাষাতে!
+- ⚡ **Python য়ে চলে** — অতিৰিক্ত ৰানটাইম নাই
+- 🛠️ **CLI টুলচ** — `run`, `compile`, `repl`, `version`
+- 🔒 **সুৰক্ষিত** — sandboxed builtins, কোনো বিপদ নাই
+- 🎨 **VS Code সাপোর্ট** — `.oj` ফাইলৰ বাবে syntax highlighting
+- 📚 **শিকোৱা-বন্ধুত্বপূর্ণ** — স্পষ্ট, সহায়ক error messages
 
 ---
 
-## 📦 Installation
+## 📦 ইনস্টলেশন
 
 ```bash
 pip install ooju
 ```
 
-### Development Setup
+### ডেভেলপমেন্ট ছেটআপ
 
 ```bash
 git clone https://github.com/Prabaaal/Ooju.git
@@ -46,31 +45,31 @@ pip install -e .
 
 ---
 
-## 🚀 Quick Start
+## 🚀 চালু কৰোৱা
 
-Create a file called `hello.oj`:
+`hello.oj` নামে এটা ফাইল তৈয়াৰ কৰা:
 
 ```
 kaam greet(name):
-    kua("Namaskar, " + name)
+    kua("নমস্কাৰ, " + name)
 
-dhora naam = lobo("Tomar naam ki? ")
+dhora naam = lobo("তোমাৰ নাম কি? ")
 greet(naam)
 ```
 
-Run it:
+চলাওঁ:
 
 ```bash
 ooju run hello.oj
 ```
 
-See the generated Python:
+সৃষ্টি হোৱা Python দেখা:
 
 ```bash
 ooju run hello.oj --debug
 ```
 
-Compile to a `.py` file:
+`.py` ফাইললৈ কম্পাইল কৰা:
 
 ```bash
 ooju compile hello.oj
@@ -78,88 +77,88 @@ ooju compile hello.oj
 
 ---
 
-## 📖 Language Reference
+## 📖 ভাষা গাইড
 
-### Variables
+### চলক (Variables)
 ```
 dhora x = 5
-dhora greet = "Namaskar!"
+dhora greet = "নমস্কাৰ!"
 ```
 
-### Output & Input
+### আউটপুট & ইনপুট
 ```
-kua("Namaskar!")          # print
-dhora name = lobo("Ki?)   # input
+kua("নমস্কাৰ!")          # print
+dhora name = lobo("কি?")  # input
 ```
 
-### Functions
+### ফাংশন
 ```
 kaam add(a, b):
     return a + b
 ```
 
-### Conditionals
+### চর্ত (Conditionals)
 ```
 jodi (x > 5) hoi, tetia:
-    kua("besi")
+    kua("বেছি")
 nohole jodi (x > 3) hoi, tetia:
-    kua("moddhyom")
+    kua("মধ্যম")
 nohole ba:
-    kua("kom")
+    kua("কম")
 ```
 
-### Loops
+### লুপ
 ```
-# Repeat N times
+# N সময় দোহাৰা
 3 bar kora:
     kua("hello")
 
-# While loop
+# While লুপ
 jetialoike (x < 10) bare bare kora:
     dhora x = x + 1
 ```
 
-### Comments
+### মন্তব্য
 ```
-// This is a single-line comment
+// এইটো এক লাইন মন্তব্য
 
 ///
-This is a
-block comment
+এইটো এটা
+ব্লক মন্তব্য
 ///
 ```
 
 ---
 
-## ⚠️ Error Messages
+## ⚠️ ত্রুটি বার্তা
 
-Ooju gives beginner-friendly errors with context and suggestions:
+Ooju-য় শিকনৰ্থী-বন্ধুত্বপূর্ণ errors দিয়ে:
 
 ```
 OojuError:
   File : hello.oj
   Line : 3
   Code : dhora naam
-  Issue: missing assignment after 'dhora'
-  Help : Did you mean: dhora x = 10 ?
+  Issue: 'dhora' ৰ পাছত এসাইনমেন্ট নাই
+  Help : ভুলবশতঃ: dhora x = 10 ?
 ```
 
 ---
 
-## 📂 Project Structure
+## 📂 প্ৰজেক্ট স্ট্রাকচাৰ
 
 ```
 Ooju/
-├── assets/             # Branding (logo)
-├── ooju/               # Core language package
+├── assets/             # ব্র্যান্ডিং (logo)
+├── ooju/               # মূল ভাষা প্যাকেজ
 │   ├── tokenizer.py    # Lexer — text → tokens
 │   ├── parser.py       # Parser — tokens → AST
 │   ├── codegen.py      # Code generator — AST → Python
 │   ├── transpiler.py   # Pipeline orchestrator
-│   ├── cli.py          # Command-line interface
-│   ├── repl.py         # Interactive REPL
-│   └── stdlib.py       # Safe builtins sandbox
-├── examples/           # Sample .oj programs
+│   ├── cli.py          # কমান্ড-লাইন ইণ্টাৰফেচ
+│   ├── repl.py         # ইণ্টাৰেক্টিভ REPL
+│   └── stdlib.py       # সুৰক্ষিত builtins sandbox
+├── examples/           # নমুনা .oj প্ৰগ্রাম
 ├── tests/              # Pytest test suite
 ├── editors/vscode/     # VS Code syntax extension
 ├── pyproject.toml
@@ -168,7 +167,7 @@ Ooju/
 
 ---
 
-## 🧪 Running Tests
+## 🧪 টেস্ট চলোৱা
 
 ```bash
 pip install pytest
@@ -177,9 +176,9 @@ pytest tests/
 
 ---
 
-## 🎨 Editor Support
+## 🎨 সম্পাদক সাপোর্ট
 
-Syntax highlighting for `.oj` files is available for **VS Code**.
+`.oj` ফাইলৰ বাবে syntax highlighting **VS Code**-ত পোৱা যায়।
 
 ```bash
 cd editors/vscode
@@ -190,25 +189,29 @@ code --install-extension ooju-vscode-*.vsix
 
 ---
 
-## 🤝 Contributing
+## 🤝 অবদান
 
-Contributions are welcome! Here's how to get started:
+অবদান আমোদজনক! এভাবে আৰম্ভ কৰা:
 
 1. Fork the repo
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m "feat: add your feature"`
-4. Push and open a Pull Request
+2. ফিচাৰ ব্রাঞ্চ তৈয়াৰ কৰা: `git checkout -b feature/your-feature`
+3. পৰিবৰ্তন commit কৰা: `git commit -m "feat: add your feature"`
+4. Push কৰা আৰু Pull Request খোলা
 
-Please ensure all tests pass before submitting.
+অনুগ্রহ কৰা সকলো টেস্ট পাছ হোৱাৰ আগতে submit কৰা।
 
 ---
 
-## 📄 License
+## 📄 লাইসেন্স
 
 MIT © [Prabal Gogoi](https://github.com/Prabaaal)
 
 ---
 
 <div align="center">
-Made with ❤️ for Assamese learners
+
+❤️ অসমীয়া শিকনৰ্থীৰ বাবে তৈয়াৰ
+
+*ক'ডিং এবাৰ — অসমীয়াত!*
+
 </div>

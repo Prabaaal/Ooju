@@ -61,7 +61,7 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(stderr_buffer.getvalue(), "")
-        self.assertIn("1.0.0", stdout_buffer.getvalue())
+        self.assertIn("1.0.1", stdout_buffer.getvalue())
 
     def test_rejects_non_oj_files(self) -> None:
         stdout_buffer = io.StringIO()

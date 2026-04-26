@@ -80,6 +80,20 @@ class DoWhileNode:
     line: int
 
 @dataclass
+class DoWhileCondNode:
+    """Sentinel node emitted by 'jetialoike (cond)' inside a do-while block."""
+    condition: str
+    line: int
+    is_do_while_cond: bool = True
+
+@dataclass
+class ReassignNode:
+    """Explicit reassignment via the 'sali' keyword."""
+    name: str
+    value: str
+    line: int
+
+@dataclass
 class ListDeclNode:
     name: str
     items: str
@@ -379,15 +393,15 @@ class Parser:
         while self.peek().type not in (TT.EOF, TT.COLON, TT.LBRACE) and self.peek().value not in ("tetia", "hoi"):
             if self.peek().value == "xoman":
                 self.consume()
-                parts.insert(-1, "==")
+                parts.insert(-1, "==")  # insert before last element (postfix syntax: "x 10 xoman" → "x == 10")
                 continue
             if self.peek().value == "besi":
                 self.consume()
-                parts.insert(-1, ">")
+                parts.insert(-1, ">")   # postfix: "x 10t koi besi" → "x > 10"
                 continue
             if self.peek().value == "kom":
                 self.consume()
-                parts.insert(-1, "<")
+                parts.insert(-1, "<")   # postfix: "x 10t koi kom" → "x < 10"
                 continue
             if self.peek().value in ("t", "koi"):
                 self.consume()
@@ -475,6 +489,15 @@ class Parser:
                 return AssignNode(name, value, t.line)
 
             raise ParseError(t.line, f"'dhora {name}' ৰ পিছত '=' lage", filename=self.filename)
+
+        # sali keyword — explicit reassignment (Phase 3: pedagogical clarity)
+        if t.type == TT.KEYWORD and t.value == "sali":
+            self.consume()
+            name = self.expect(TT.IDENT, "'sali' ৰ পিছত variable name lage").value
+            self.expect(TT.ASSIGN, f"'sali {name}' ৰ পিছত '=' lage")
+            value = self.collect_until_newline()
+            self.skip_newlines()
+            return ReassignNode(name, value, t.line)
 
         if t.type == TT.IDENT and self.peek(1).type in (
             TT.PLUS_ASSIGN, TT.MINUS_ASSIGN, TT.STAR_ASSIGN, TT.SLASH_ASSIGN
@@ -650,14 +673,10 @@ class Parser:
             condition = self.collect_expr(stop_at_rparen=True)
             self.expect(TT.RPAREN, "'jetialoike (...)' বন্ধ কৰা নাই ')'")
             if self.peek().value != "bare":
-                # Might be a do-while condition at the end of a block
-                class DoWhileConditionNode:
-                    def __init__(self, c, l):
-                        self.condition = c
-                        self.line = l
-                        self.is_do_while_cond = True
+                # Sentinel for a do-while condition at the end of a block.
+                # Uses the top-level DoWhileCondNode dataclass (FIXED: was a ghost class).
                 self.skip_newlines()
-                return DoWhileConditionNode(condition, t.line)
+                return DoWhileCondNode(condition, t.line)
             self.consume(); self.consume(); self.consume()
             self._expect_colon_or_brace("'bare bare kora' ৰ শেষত ':' lage")
             body = self.parse_block()
