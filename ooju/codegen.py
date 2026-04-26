@@ -160,8 +160,9 @@ def generate(nodes: list, indent: int = 0) -> tuple[str, dict]:
             elif node.func == "xomoy":
                 expr = "datetime.now()"
             elif node.func == "file_poha":
-                # FIXED: add encoding, open()-without-close() resource leak patched
-                expr = f"open({node.args[0]}, encoding='utf-8').read()"
+                # FIXED: add encoding and use pathlib.Path to prevent file handle leak
+                require_preamble("from pathlib import Path")
+                expr = f"Path({node.args[0]}).read_text(encoding='utf-8')"
             elif node.func == "file_likha":
                 # FIXED: emit a with-block to avoid dangling file handle
                 with_lines = [

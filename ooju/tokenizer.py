@@ -108,12 +108,13 @@ ASSAMESE_TO_ROMANIZED_KEYWORDS = {
     "অনা": "ona",
 
     # ── Assamese-first boolean / logic / reassignment keywords (Phase 3) ─────────
-    "সঁচা": "xosa",    # True  (xahi)
-    "মিথা": "misa",   # False (mitha)
+    "সঁচা": "xahi",    # True  (xahi)
+    "মিথা": "mitha",   # False (mitha)
     "নাই":  "nai",     # None  (nai)
     "আৰু":  "aru",     # and   (aru)
+    "নহলে": "nahole",  # or    (nahole)
     "নহয়": "nohoi",   # not   (nohoi)
-    "সলা":  "xola",    # reassign keyword (sali)
+    "সলা":  "sali",    # reassign keyword (sali)
 }
 
 KEYWORDS = {
@@ -149,11 +150,11 @@ KEYWORDS = {
     # import
     "ona",
     # Assamese-first boolean / logic keywords (Phase 3)
-    "xosa",    # True  (সঁচা)
-    "misa",   # False (মিথা)
+    "xahi",    # True  (সঁচা)
+    "mitha",   # False (মিথা)
     "nai",     # None  (নাই)
     "aru",     # and   (আৰু)
-    "naiba",  # or    (নহলে)
+    "nahole",  # or    (নহলে)
     "nohoi",   # not   (নহয়)
     # Python passthrough aliases (legacy — still work for backward compatibility)
     "True", "False", "None",
