@@ -145,6 +145,17 @@ If everything is valid:
 sob thik ase! no syntax errors found. ✅
 ```
 
+### Beginner-Friendly Errors
+
+Jodi syntax line-t bhul thake, Ooju etiya romanized Assamese-t bujhai dibo:
+
+* ki bhul hoise
+* bujha
+* thik kora
+* udaharan
+
+Etiya `ooju check` aru `ooju run` duita command-e ekei dhorar help dikhabo.
+
 ---
 
 ### Debug mode

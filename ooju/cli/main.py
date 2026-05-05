@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from ooju import __version__
+from ooju.core.diagnostics import build_diagnostic, render_diagnostic
 from ooju.core.transpiler import TranspileError, transpile
 from ooju.core.parser import MultiParseError
 
@@ -107,6 +108,12 @@ def _compile_file(file_path: Path, output: Optional[str], py_code: str) -> Path:
     return output_path
 
 
+def _print_diagnostics(errors: list[Exception]) -> None:
+    for error in errors:
+        diagnostic = build_diagnostic(error)
+        print(render_diagnostic(diagnostic), file=sys.stderr)
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     parser = _build_parser()
@@ -158,7 +165,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print("sob thik ase! no syntax errors found. ✅")
             return 0
         except MultiParseError as exc:
-            print(exc.format_error(), file=sys.stderr)
+            _print_diagnostics(exc.errors)
+            return 1
+        except TranspileError as exc:
+            _print_diagnostics([exc])
             return 1
         except Exception as exc:
             print(f"Ooju error: {exc}", file=sys.stderr)
@@ -184,7 +194,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(f"Ooju runtime error: {exc}", file=sys.stderr)
             return 1
         except TranspileError as exc:
-            print(exc.format_error(), file=sys.stderr)
+            _print_diagnostics([exc])
             return 1
         except OSError as exc:
             print(f"Ooju runtime error: {exc}", file=sys.stderr)

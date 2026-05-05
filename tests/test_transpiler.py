@@ -146,6 +146,8 @@ class TranspilerTests(unittest.TestCase):
         formatted = ctx.exception.format_error()
         self.assertIn("file    : demo.oj", formatted)
         self.assertIn("'dhora naam' ৰ পিছত '=' lage", formatted)
+        self.assertEqual(ctx.exception.line_number, 1)
+        self.assertEqual(ctx.exception.line_text, "dhora naam")
 
     def test_dhora_with_no_name_errors(self) -> None:
         with self.assertRaises(TranspileError):
