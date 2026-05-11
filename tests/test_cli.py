@@ -3,8 +3,10 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from ooju.cli.main import main
+from ooju.cli.repl import run_repl
 
 
 class CliTests(unittest.TestCase):
@@ -128,6 +130,30 @@ class CliTests(unittest.TestCase):
         self.assertGreaterEqual(output.count("ki bhul hoise"), 2)
         self.assertIn("line: 1", output)
         self.assertIn("line: 2", output)
+
+    def test_run_command_rejects_python_builtin_escape_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            program = Path(tmp_dir) / "escape.oj"
+            program.write_text('kua(__import__("os").getcwd())\n', encoding="utf-8")
+
+            stdout_buffer = io.StringIO()
+            stderr_buffer = io.StringIO()
+            with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+                exit_code = main(["run", str(program)])
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(stdout_buffer.getvalue(), "")
+        self.assertIn("ki bhul hoise", stderr_buffer.getvalue().lower())
+
+    def test_repl_rejects_python_builtin_escape_payload(self) -> None:
+        stdout_buffer = io.StringIO()
+        with patch("builtins.input", side_effect=['kua(__import__("os").getcwd())', "jau"]):
+            with redirect_stdout(stdout_buffer):
+                run_repl()
+
+        output = stdout_buffer.getvalue().lower()
+        self.assertNotIn("/users/", output)
+        self.assertIn("valid nohoi", output)
 
 
 if __name__ == "__main__":
