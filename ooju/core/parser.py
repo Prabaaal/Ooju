@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Any, List
 from ooju.core.tokenizer import Token, TT, TokenizeError
@@ -248,6 +249,18 @@ class Parser:
         elif self.peek().type != TT.LBRACE:
             raise ParseError(self.peek().line, err, filename=self.filename)
 
+    def _validate_expr_text(self, expr: str, line: int) -> str:
+        # Reject Python dunder gadget syntax at the parser boundary. Ooju does
+        # not document dunder access as part of the language surface.
+        if re.search(r"\b__\w+\b", expr):
+            raise ParseError(
+                line,
+                "ei Python-only syntax-tu Ooju-t valid nohoi",
+                line_text=expr,
+                filename=self.filename,
+            )
+        return expr
+
     def collect_expr(self, stop_at_rparen=False) -> str:
         parts = []
         depth = 0
@@ -264,13 +277,14 @@ class Parser:
                     break
                 depth -= 1
             parts.append(self.consume().value)
-        return " ".join(parts).strip()
+        return self._validate_expr_text(" ".join(parts).strip(), self.peek().line)
 
     def collect_until_newline(self) -> str:
         parts = []
+        line = self.peek().line
         while self.peek().type not in (TT.NEWLINE, TT.EOF):
             parts.append(self.consume().value)
-        return " ".join(parts).strip()
+        return self._validate_expr_text(" ".join(parts).strip(), line)
 
     def _parse_block_indented(self) -> list:
         """Style 1: indentation-based block."""
@@ -777,14 +791,21 @@ class Parser:
                 self.skip_newlines()
                 return StringOpNode(var, op, [], "", t.line)
             else:
-                raw = self.collect_until_newline()
-                self.skip_newlines()
-                return RawNode(f"{var}.{op}{raw}", t.line)
+                raise ParseError(
+                    t.line,
+                    f"'{var}.{op}' Ooju-r valid operation nohoi",
+                    filename=self.filename,
+                )
 
         raw = self.collect_until_newline()
         self.skip_newlines()
         if raw:
-            return RawNode(raw, t.line)
+            raise ParseError(
+                t.line,
+                "ei syntax-tu Ooju-t valid nohoi",
+                line_text=raw,
+                filename=self.filename,
+            )
         return None
 
 

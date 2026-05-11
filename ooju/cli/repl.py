@@ -1,4 +1,5 @@
 import sys
+from ooju.cli.main import SAFE_BUILTINS
 from ooju.core.tokenizer import tokenize, TokenizeError, TT
 from ooju.core.parser import parse, ParseError, MultiParseError
 from ooju.core.codegen import generate
@@ -37,7 +38,7 @@ def _is_complete(code: str) -> bool:
 
 def run_repl():
     print(BANNER)
-    session_globals = {"__name__": "__main__"}
+    session_globals = {"__name__": "__main__", "__builtins__": SAFE_BUILTINS}
     buffer: list[str] = []
 
     while True:
